@@ -34,7 +34,13 @@ jobs:
       with:
        name: Logs
        path: logs/
-    
+    - name: Upload Extent Report
+      if: always()
+      uses: actions/upload-artifact@v4.6.2
+      with:
+        name: ExtentReport
+        path: target/extent-reports/extentReport.html
+
     - name: Publish Test Report
       if: always()
       uses: dorny/test-reporter@v1
@@ -42,4 +48,6 @@ jobs:
         name: TestNG Results
         path: target/surefire-reports/junitreports/TEST-*.xml
         reporter: java-junit
+
+   
 
