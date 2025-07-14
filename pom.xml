@@ -19,7 +19,7 @@
 				<configuration>
 					<suiteXmlFiles>
 						<suiteXmlFile>
-							${suite}.xml
+							testng.xml
 						</suiteXmlFile>
 					</suiteXmlFiles>
 				</configuration>
