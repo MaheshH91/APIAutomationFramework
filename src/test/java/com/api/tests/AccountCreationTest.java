@@ -33,7 +33,7 @@ public class AccountCreationTest {
 		Response response = authService.signUp(signUpRequest);
 		System.out.println(response.asPrettyString());
 		
-		Assert.assertEquals(response.asPrettyString(),  "User registered successfully!");
-		Assert.assertEquals(response.statusCode(),200);
+		Assert.assertEquals(response.asPrettyString(),  "User registered successfully!", "Response message does not match expected value");
+		Assert.assertEquals(response.statusCode(),200, "Status code is not 200");
 	}
 }

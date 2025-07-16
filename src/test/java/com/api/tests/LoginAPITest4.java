@@ -26,9 +26,9 @@ public class LoginAPITest4 {
 		System.out.println(loginResponse.getEmail());
 		System.out.println(loginResponse.getId());
 		
-		Assert.assertTrue(loginResponse.getToken()!=null);
-		Assert.assertEquals(loginResponse.getEmail(), "holkarmahesh1@gmail.com");
-		Assert.assertEquals(loginResponse.getId(),1698);
+		Assert.assertTrue(loginResponse.getToken()!=null, "Token is null");
+		Assert.assertEquals(loginResponse.getEmail(), "holkarmahesh1@gmail.com", "Email does not match expected value");
+		Assert.assertEquals(loginResponse.getId(),1698, "User ID does not match expected value");
 		
 		
 		
