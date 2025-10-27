@@ -18,9 +18,10 @@ public class LoggingFilter implements Filter{
 		
 		logRequest(requestSpec);
 		Response response=ctx.next(requestSpec, responseSpec);  //Request is going to execute
-		
+		  logResponse(response);
 		return response;  //test for assertion
 	}
+	
 
 	public void logRequest(FilterableRequestSpecification requestSpec) {
 		logger.info("BASE URI: "+requestSpec.getBaseUri());
@@ -35,4 +36,5 @@ public class LoggingFilter implements Filter{
 		logger.info("RESPONSE BODY: "+response.getBody().prettyPrint());
 		
 	}
+	
 }
