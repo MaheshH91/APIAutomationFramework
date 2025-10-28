@@ -8,9 +8,8 @@
 		<classes>
 			<class name="com.api.tests.LoginAPITest" />
 			<class name="com.api.tests.AccountCreationTest" />
-			<class name="com.api.tests.GetUserDetailsTest" />
-			<class name="com.api.tests.UpdateUserInfoTest" />
-			<class name="com.api.tests.DeleteUserTest" />
+			<class name="com.api.tests.GetProfileRequestTest" />
+			<class name="com.api.tests.UpdateProfileTest" />
 
 		</classes>
 	</test> <!-- Test -->
