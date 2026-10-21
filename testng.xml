@@ -13,6 +13,7 @@
 			<class name="com.api.tests.AuthNegativeTest" />
 			<class name="com.api.tests.UserProfileSecurityTest" />
 			<class name="com.api.tests.UserLifecycleE2ETest" />
+			<class name="com.api.tests.AdvancedApiTestingScenariosTest" />
 		</classes>
 	</test> <!-- Test -->
 </suite> <!-- Suite -->

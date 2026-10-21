@@ -1,7 +1,11 @@
 package com.api.base;
 
+import java.io.File;
+import java.util.Map;
+
 import com.api.filters.LoggingFilter;
 import com.api.utils.ConfigManager;
+
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;
@@ -21,44 +25,53 @@ public abstract class BaseService {
                 .build();
     }
 
-    private RequestSpecification getRequestSpec() {
-        return RestAssured.given()
-        		          .spec(BASE_SPEC);
-    }
-
     private RequestSpecification getRequestSpec(String token) {
-        RequestSpecification spec = getRequestSpec();
+        RequestSpecification spec = RestAssured.given().spec(BASE_SPEC);
         if (token != null && !token.isBlank()) {
             spec.header("Authorization", "Bearer " + token);
         }
         return spec;
     }
 
-    protected Response getRequest(String endpoint) {
-        return getRequestSpec()
-        		          .get(endpoint);
+    protected Response getRequest(String endpoint, String token) {
+        return getRequestSpec(token).get(endpoint);
     }
 
-    protected Response getRequest(String endpoint, String token) {
-        return getRequestSpec(token)
-        		         .get(endpoint);
+    protected Response getRequestWithQueryParams(String endpoint, Map<String, ?> queryParams, String token) {
+        return getRequestSpec(token).queryParams(queryParams).get(endpoint);
     }
 
     protected Response postRequest(Object payload, String endpoint) {
-        return getRequestSpec()
-        		 .body(payload)
-        		 .post(endpoint);
+        return getRequestSpec(null).body(payload).post(endpoint);
     }
 
     protected Response postRequest(Object payload, String endpoint, String token) {
-        return getRequestSpec(token)
-        		.body(payload)
-        		.post(endpoint);
+        return getRequestSpec(token).body(payload).post(endpoint);
     }
 
     protected Response putRequest(Object payload, String endpoint, String token) {
-        return getRequestSpec(token)
-        		.body(payload)
-        		.put(endpoint);
+        return getRequestSpec(token).body(payload).put(endpoint);
+    }
+
+    protected Response patchRequest(Object payload, String endpoint, String token) {
+        return getRequestSpec(token).body(payload).patch(endpoint);
+    }
+
+    protected Response deleteRequest(String endpoint, String token) {
+        return getRequestSpec(token).delete(endpoint);
+    }
+
+    protected Response uploadFile(String endpoint, File file, String token) {
+        RequestSpecification spec = RestAssured.given()
+                .baseUri(BASE_URL)
+                .contentType(ContentType.MULTIPART)
+                .multiPart("file", file)
+                .filter(new LoggingFilter());
+
+        if (token != null && !token.isBlank()) {
+            spec.header("Authorization", "Bearer " + token);
+        }
+
+        return spec.post(endpoint);
     }
 }
