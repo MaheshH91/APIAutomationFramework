@@ -1,9 +1,9 @@
 pipeline {
     agent any
 
-    tools {
-        jdk 'JDK_21'       // Replace with the name configured in Manage Jenkins -> Tools
-        maven 'Maven_3.9.9' // Replace with the name configured in Manage Jenkins -> Tools
+  tools {
+        jdk 'JAVA_HOME'
+        maven 'MAVEN_HOME'
     }
 
     stages {
