@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     tools {
-        jdk 'JDK_21'          // Match your configured JDK name under Manage Jenkins -> Tools
-        maven 'Maven_3.9.9'    // Match your configured Maven name under Manage Jenkins -> Tools
+        jdk 'JAVA_HOME'
+        maven 'MAVEN_HOME'
     }
 
     options {
@@ -26,7 +26,6 @@ pipeline {
 
         stage('Run API Test Automation Suite') {
             steps {
-                // Runs the full suite configured in testng.xml
                 bat 'mvn clean test'
             }
         }
@@ -34,10 +33,8 @@ pipeline {
 
     post {
         always {
-            // Publish standard Surefire XML test results
             junit allowEmptyResults: true, testResults: 'target/surefire-reports/*.xml'
 
-            // Publish interactive ExtentReports 5 Dashboard
             publishHTML([
                 allowMissing: false,
                 alwaysLinkToLastBuild: true,
