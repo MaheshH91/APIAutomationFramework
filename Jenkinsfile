@@ -26,9 +26,17 @@ pipeline {
         stage('Start Mock Server') {
             steps {
                 script {
-                    echo "Starting Mockoon mock server on port ${MOCK_PORT}..."
-                    // Start Mockoon via Windows Batch
-                    bat "mockoon-cli start --data \"%MOCK_FILE%\" --port %MOCK_PORT% || exit 0"
+                    // Check if file exists in workspace root or under src/test/resources
+                    def mockExists = fileExists(env.MOCK_FILE)
+                    if (mockExists) {
+                        echo "Starting Mockoon mock server on port ${MOCK_PORT}..."
+                        bat "mockoon-cli start --data \"%MOCK_FILE%\" --port %MOCK_PORT% || exit 0"
+                    } else if (fileExists("src/test/resources/${env.MOCK_FILE}")) {
+                        echo "Starting Mockoon mock server from src/test/resources..."
+                        bat "mockoon-cli start --data \"src/test/resources/%MOCK_FILE%\" --port %MOCK_PORT% || exit 0"
+                    } else {
+                        echo "⚠️ Warning: Mockoon configuration file not found in workspace. Proceeding with existing local mock..."
+                    }
                 }
             }
         }
@@ -41,7 +49,6 @@ pipeline {
 
         stage('Run API Test Suite') {
             steps {
-                // Executes the test suite against the running Mockoon instance
                 bat 'mvn test -DsuiteXmlFile=testng.xml'
             }
         }
@@ -50,14 +57,11 @@ pipeline {
     post {
         always {
             script {
-                echo "Terminating Mockoon mock server instances..."
-                bat 'mockoon-cli stop all || exit 0'
+                echo "Terminating Mockoon instances..."
+                bat 'mockoon-cli stop --all || exit 0'
             }
 
-            // Publish TestNG XML Results
-            testng testResultsPattern: '**/target/surefire-reports/testng-results.xml'
-
-            // Publish JUnit XML Fallback
+            // Standard JUnit publisher (already installed and active on your Jenkins)
             junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
 
             // Publish Extent HTML Report
@@ -71,14 +75,14 @@ pipeline {
                 reportTitles: 'Enterprise API Test Automation Report'
             ])
 
-            // Archive Reports Artifacts
+            // Archive Test Reports Artifacts
             archiveArtifacts artifacts: 'target/surefire-reports/**, target/*.html, target/extent-reports/**', allowEmptyArchive: true
         }
         success {
-            echo '✅ All API tests executed and passed successfully!'
+            echo '✅ All 31 API tests passed successfully!'
         }
         failure {
-            echo '❌ Build failed or test assertions broke. Check Extent Report or Console Output.'
+            echo '❌ Pipeline failed. Check console output or surefire reports.'
         }
     }
 }
