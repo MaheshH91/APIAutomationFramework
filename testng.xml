@@ -4,13 +4,15 @@
 	<listeners>
 		<listener class-name="com.api.listeners.TestListener" />
 	</listeners>
-	<test thread-count="5" name="API Test">
+	<test thread-count="5" name="API Functional">
 		<classes>
 			<class name="com.api.tests.LoginAPITest" />
 			<class name="com.api.tests.AccountCreationTest" />
 			<class name="com.api.tests.GetProfileRequestTest" />
 			<class name="com.api.tests.UpdateProfileTest" />
-
+			<class name="com.api.tests.AuthNegativeTest" />
+			<class name="com.api.tests.UserProfileSecurityTest" />
+			<class name="com.api.tests.UserLifecycleE2ETest" />
 		</classes>
 	</test> <!-- Test -->
 </suite> <!-- Suite -->

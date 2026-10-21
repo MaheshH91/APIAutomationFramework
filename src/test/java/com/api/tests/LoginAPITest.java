@@ -11,7 +11,7 @@ public class LoginAPITest {
 
 	@Test(description = "Verify if Login API is working...")
 	public void loginTest() {
-		RestAssured.baseURI="http://64.227.160.186:8080";
+		RestAssured.baseURI = com.api.utils.ConfigManager.getBaseUrl();
 		RequestSpecification x =RestAssured.given();
 		RequestSpecification y =x.header("Content-Type", "application/json");
 		RequestSpecification z=y.body("{\"username\": \"holkarmahesh\",\"password\": \"Raj@1234\"}");

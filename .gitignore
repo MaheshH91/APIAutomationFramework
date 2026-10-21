@@ -1,3 +1,28 @@
 /target/
 /test-output/
 /logs/
+# Maven build outputs
+target/
+*.jar
+*.war
+*.ear
+
+# Logs
+logs/
+*.log
+
+# IDE files
+.idea/
+*.iml
+.eclipse/
+.project
+.classpath
+.settings/
+
+# Test output directories
+test-output/
+extent-reports/
+
+# OS metadata
+Thumbs.db
+.DS_Store
