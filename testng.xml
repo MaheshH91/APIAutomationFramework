@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-<suite name="API Test Suite">
+<suite name="Enterprise API Automation Suite" parallel="classes" thread-count="2" verbose="2">
+
+	<!-- Suite-Level XML Parameters -->
+	<parameter name="environment" value="dev" />
+	<parameter name="defaultTimeout" value="5000" />
+
+	<!-- Listeners: TestListener (ExtentReports) & AnnotationTransformer (Auto-Retry) -->
 	<listeners>
 		<listener class-name="com.api.listeners.TestListener" />
+		<listener class-name="com.api.listeners.AnnotationTransformer" />
 	</listeners>
-	<test thread-count="5" name="API Functional">
+
+	<test name="API Functional &amp; Security Tests">
 		<classes>
 			<class name="com.api.tests.LoginAPITest" />
 			<class name="com.api.tests.AccountCreationTest" />
@@ -13,7 +21,13 @@
 			<class name="com.api.tests.AuthNegativeTest" />
 			<class name="com.api.tests.UserProfileSecurityTest" />
 			<class name="com.api.tests.UserLifecycleE2ETest" />
-			<class name="com.api.tests.AdvancedApiTestingScenariosTest" />
 		</classes>
-	</test> <!-- Test -->
-</suite> <!-- Suite -->
+	</test>
+
+	<test name="TestNG Advanced Features &amp; Concurrency Test">
+		<classes>
+			<class name="com.api.tests.ComprehensiveTestNGFeaturesTest" />
+		</classes>
+	</test>
+
+</suite>

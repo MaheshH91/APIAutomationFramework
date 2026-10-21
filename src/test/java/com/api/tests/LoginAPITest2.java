@@ -12,7 +12,6 @@ public class LoginAPITest2 {
 
 	@Test(description = "Verifying login api is working....")
 	public void loginTest() {
-		
 		Response response = given()
 				                 .baseUri(com.api.utils.ConfigManager.getBaseUrl())
 		                 	     .header("Content-Type", "application/json")
