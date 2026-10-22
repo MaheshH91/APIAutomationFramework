@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Security &amp; Auth Suite" parallel="classes" thread-count="2" verbose="2">
+    <parameter name="environment" value="qa" />
+    <parameter name="defaultTimeout" value="5000" />
+
+    <listeners>
+        <listener class-name="com.api.listeners.TestListener" />
+        <listener class-name="com.api.listeners.AnnotationTransformer" />
+    </listeners>
+
+    <test name="Security - Token &amp; Authentication Mechanisms">
+        <classes>
+            <class name="com.api.tests.AuthorizationMechanismsTest" />
+            <class name="com.api.tests.UserProfileSecurityTest" />
+            <class name="com.api.tests.AuthNegativeTest" />
+        </classes>
+    </test>
+</suite>

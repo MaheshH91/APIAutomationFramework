@@ -1,13 +1,21 @@
 pipeline {
     agent any
 
+    parameters {
+        choice(
+            name: 'TEST_SUITE',
+            choices: ['regression', 'smoke', 'security'],
+            description: 'Select the TestNG suite profile to execute via Maven'
+        )
+    }
+
     tools {
         jdk 'JAVA_HOME'
         maven 'MAVEN_HOME'
     }
 
     environment {
-        MOCK_FILE = 'API Automation Mock.json'
+        MOCK_FILE = 'mockoon-environment.json'
         MOCK_PORT = '8089'
     }
 
@@ -26,18 +34,17 @@ pipeline {
         stage('Start Mock Server') {
             steps {
                 script {
-                    // Check if file exists in workspace root or under src/test/resources
                     def rootFile = "${env.MOCK_FILE}"
                     def resourceFile = "src/test/resources/${env.MOCK_FILE}"
 
                     if (fileExists(rootFile)) {
-                        echo "Starting Mockoon server on port ${MOCK_PORT} using root file..."
+                        echo "Starting Mockoon server on port ${MOCK_PORT} using workspace root configuration..."
                         bat "mockoon-cli start --data \"%MOCK_FILE%\" --port %MOCK_PORT% || exit 0"
                     } else if (fileExists(resourceFile)) {
-                        echo "Starting Mockoon server on port ${MOCK_PORT} using resources file..."
+                        echo "Starting Mockoon server on port ${MOCK_PORT} using resources configuration..."
                         bat "mockoon-cli start --data \"src\\test\\resources\\%MOCK_FILE%\" --port %MOCK_PORT% || exit 0"
                     } else {
-                        echo "⚠️ Warning: Mockoon configuration file not found in workspace. Relying on active standalone/background mock..."
+                        echo "Warning: Mockoon environment file not found in workspace. Relying on active standalone/background mock server..."
                     }
                 }
             }
@@ -51,7 +58,10 @@ pipeline {
 
         stage('Run API Test Suite') {
             steps {
-                bat 'mvn test -DsuiteXmlFile=testng.xml'
+                script {
+                    echo "Executing API Test Suite with Profile: ${params.TEST_SUITE}"
+                    bat "mvn test -P${params.TEST_SUITE}"
+                }
             }
         }
     }
@@ -60,7 +70,7 @@ pipeline {
         always {
             script {
                 echo "Terminating Mockoon instances..."
-                bat 'mockoon-cli stop --all || mockoon-cli stop all || exit 0'
+                bat 'mockoon-cli stop all || mockoon-cli stop --all || exit 0'
             }
 
             // 1. Process standard Surefire/TestNG XML test results
@@ -92,10 +102,10 @@ pipeline {
             archiveArtifacts artifacts: 'target/surefire-reports/**, target/extent-reports/**', allowEmptyArchive: true
         }
         success {
-            echo '✅ All 31 API tests passed successfully!'
+            echo "All tests executed and passed under the '${params.TEST_SUITE}' profile!"
         }
         failure {
-            echo '❌ Pipeline failed. Check console output or surefire reports.'
+            echo "Pipeline failed. Check the console output, ExtentReport, or surefire reports for failure details."
         }
     }
 }

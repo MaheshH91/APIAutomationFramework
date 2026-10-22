@@ -1,6 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="httpS://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 
@@ -18,6 +18,7 @@
 		<log4j.version>2.24.1</log4j.version>
 		<slf4j.version>2.0.16</slf4j.version>
 		<extentreports.version>5.1.2</extentreports.version>
+		<suiteXmlFile>testng-regression.xml</suiteXmlFile>
 	</properties>
 
 	<dependencies>
@@ -29,6 +30,12 @@
 			<version>${rest-assured.version}</version>
 		</dependency>
 
+		<dependency>
+			<groupId>io.rest-assured</groupId>
+			<artifactId>json-schema-validator</artifactId>
+			<version>${rest-assured.version}</version>
+		</dependency>
+
 		<!-- TestNG Test Runner -->
 		<dependency>
 			<groupId>org.testng</groupId>
@@ -36,41 +43,38 @@
 			<version>${testng.version}</version>
 		</dependency>
 
+		<!-- Jackson Core and Databind -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
-			<version>2.18.2</version>
+			<version>${jackson.version}</version>
 		</dependency>
-		<!-- 
-		https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind  -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.18.2</version>
-		</dependency>
-		<dependency>
-			<groupId>io.rest-assured</groupId>
-			<artifactId>json-schema-validator</artifactId>
-			<version>5.5.0</version>
-		</dependency>
-		<!-- Logging -->
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
-			<version>${slf4j.version}</version>
-			<scope>test</scope>
+			<version>${jackson.version}</version>
 		</dependency>
 
+		<!-- Logging: Log4j2 and SLF4J Bridge -->
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
 			<version>${log4j.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
 			<version>${log4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j2-impl</artifactId>
+			<version>${log4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
 		</dependency>
 
 		<!-- Extent Reports -->
@@ -81,6 +85,35 @@
 		</dependency>
 
 	</dependencies>
+
+	<profiles>
+		<!-- Default: Regression Suite -->
+		<profile>
+			<id>regression</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<suiteXmlFile>testng-regression.xml</suiteXmlFile>
+			</properties>
+		</profile>
+
+		<!-- Smoke Suite -->
+		<profile>
+			<id>smoke</id>
+			<properties>
+				<suiteXmlFile>testng-smoke.xml</suiteXmlFile>
+			</properties>
+		</profile>
+
+		<!-- Security and Authorization Suite -->
+		<profile>
+			<id>security</id>
+			<properties>
+				<suiteXmlFile>testng-security.xml</suiteXmlFile>
+			</properties>
+		</profile>
+	</profiles>
 
 	<build>
 		<plugins>
@@ -95,17 +128,24 @@
 				</configuration>
 			</plugin>
 
-			<!-- TestNG Execution -->
+			<!-- Central Maven Surefire Configuration -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.2.5</version>
 				<configuration>
 					<suiteXmlFiles>
-						<suiteXmlFile>testng.xml</suiteXmlFile>
+						<suiteXmlFile>${suiteXmlFile}</suiteXmlFile>
 					</suiteXmlFiles>
+					<properties>
+						<property>
+							<name>usedefaultlisteners</name>
+							<value>true</value>
+						</property>
+					</properties>
 				</configuration>
 			</plugin>
+
 		</plugins>
 	</build>
 
