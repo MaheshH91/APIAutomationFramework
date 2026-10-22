@@ -3,7 +3,9 @@ package com.api.utils;
 import java.lang.reflect.Method;
 import org.testng.annotations.DataProvider;
 
-public class TestDataProvider {
+public final class TestDataProvider {
+
+    private TestDataProvider() {}
 
     @DataProvider(name = "authCredentialsData", parallel = true)
     public static Object[][] getAuthCredentials() {
@@ -14,13 +16,11 @@ public class TestDataProvider {
         };
     }
 
-    // Method-aware dynamic DataProvider: feeds different data based on caller test method
     @DataProvider(name = "dynamicOrderData")
     public static Object[][] getDynamicOrderData(Method method) {
-        if (method.getName().equals("testHighPriorityOrder")) {
+        if ("testHighPriorityOrder".equals(method.getName())) {
             return new Object[][] { { 101, "Laptop", 1200.00 } };
-        } else {
-            return new Object[][] { { 102, "Mouse", 25.50 } };
         }
+        return new Object[][] { { 102, "Mouse", 25.50 } };
     }
 }

@@ -4,7 +4,9 @@ import com.aventstack.extentreports.Status;
 import com.aventstack.extentreports.markuputils.CodeLanguage;
 import com.aventstack.extentreports.markuputils.MarkupHelper;
 
-public class ExtentLogger {
+public final class ExtentLogger {
+
+    private ExtentLogger() {}
 
     public static void info(String message) {
         if (ExtentManager.getTest() != null) {

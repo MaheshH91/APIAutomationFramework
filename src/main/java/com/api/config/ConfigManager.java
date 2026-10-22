@@ -1,17 +1,20 @@
-package com.api.utils;
+package com.api.config;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
+import com.api.constants.FrameworkConstants;
 
-public class ConfigManager {
+public final class ConfigManager {
     private static final Properties prop = new Properties();
 
+    private ConfigManager() {}
+
     static {
-        try (FileInputStream fis = new FileInputStream("src/test/resources/config.properties")) {
+        try (FileInputStream fis = new FileInputStream(FrameworkConstants.CONFIG_FILE_PATH)) {
             prop.load(fis);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to load config.properties", e);
+            throw new ExceptionInInitializerError("Failed to load configuration file at: " + FrameworkConstants.CONFIG_FILE_PATH + " -> " + e.getMessage());
         }
     }
 
@@ -19,7 +22,6 @@ public class ConfigManager {
         return prop.getProperty(key);
     }
 
-    // Overload with default
     public static String get(String key, String defaultValue) {
         return prop.getProperty(key, defaultValue);
     }

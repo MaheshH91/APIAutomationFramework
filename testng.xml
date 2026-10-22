@@ -12,9 +12,9 @@
 		<listener class-name="com.api.listeners.AnnotationTransformer" />
 	</listeners>
 
-	<test name="API Functional &amp; Security Tests">
+	<test name="API Functional and Security Tests">
 		<classes>
-			<class name="com.api.tests.LoginAPITest" />
+			<class name="com.api.tests.LoginTest" />
 			<class name="com.api.tests.AccountCreationTest" />
 			<class name="com.api.tests.GetProfileRequestTest" />
 			<class name="com.api.tests.UpdateProfileTest" />
@@ -22,10 +22,12 @@
 			<class name="com.api.tests.UserProfileSecurityTest" />
 			<class name="com.api.tests.UserLifecycleE2ETest" />
 			<class name="com.api.tests.AuthorizationMechanismsTest" />
+			<class name="com.api.tests.AdvancedApiTestingScenariosTest" />
+			<class name="com.api.tests.ForgotPasswordTest" />
 		</classes>
 	</test>
 
-	<test name="TestNG Advanced Features &amp; Concurrency Test">
+	<test name="TestNG Advanced Features and Concurrency Test">
 		<classes>
 			<class name="com.api.tests.ComprehensiveTestNGFeaturesTest" />
 		</classes>

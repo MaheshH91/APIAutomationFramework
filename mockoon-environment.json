@@ -1,0 +1,902 @@
+{
+  "uuid": "327da2df-11e4-43e1-b926-408364451bd2",
+  "lastMigration": 33,
+  "name": "API Automation Mock",
+  "endpointPrefix": "",
+  "latency": 0,
+  "port": 8089,
+  "hostname": "",
+  "folders": [],
+  "routes": [
+    {
+      "uuid": "c51ff604-c56f-426f-aa76-f6a79aa6e50d",
+      "type": "http",
+      "documentation": "User Authentication - Login",
+      "method": "post",
+      "endpoint": "api/auth/login",
+      "responses": [
+        {
+          "uuid": "6f3b0327-7a55-42ae-9869-0469367a82e0",
+          "body": "{\n  \"token\": \"mocked-jwt-token-xyz123\",\n  \"type\": \"Bearer\",\n  \"id\": 1,\n  \"username\": \"holkarmahesh\",\n  \"email\": \"holkarmahesh1@gmail.com\",\n  \"roles\": [\n    \"ROLE_USER\"\n  ]\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "Login Success",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "d0ce36e4-a1ec-4124-a1c2-978d9d8c6fb4",
+          "body": "{\n  \"timestamp\": \"2026-10-21T10:00:00.000+00:00\",\n  \"status\": 401,\n  \"error\": \"Unauthorized\",\n  \"message\": \"Invalid credentials\",\n  \"path\": \"/api/auth/login\"\n}",
+          "latency": 0,
+          "statusCode": 401,
+          "label": "Invalid Credentials",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "body",
+              "modifier": "username",
+              "value": "invalidUser",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "023a0d18-2685-491e-b9c2-af5b7f043063",
+          "body": "{}",
+          "latency": 0,
+          "statusCode": 400,
+          "label": "Missing Username",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "body",
+              "modifier": "username",
+              "value": "",
+              "invert": false,
+              "operator": "null"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "02304e58-4778-468f-a7d7-af09cb8d014e",
+          "body": "{}",
+          "latency": 0,
+          "statusCode": 400,
+          "label": "Missing Password",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "body",
+              "modifier": "password",
+              "value": "",
+              "invert": false,
+              "operator": "null"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "be7caf62-c73d-4735-80c4-b269b0fa0f06",
+      "type": "http",
+      "documentation": "User Registration - Sign Up",
+      "method": "post",
+      "endpoint": "api/auth/signup",
+      "responses": [
+        {
+          "uuid": "dbf3985d-481c-49e6-9c23-6a5a93d6c08c",
+          "body": "{\n  \"message\": \"User registered successfully!\",\n  \"email\": \"moksha@yahoo.com\"\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "Sign Up Success",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "96f929d4-d364-4850-bc20-e0922370d5e2",
+          "body": "{}",
+          "latency": 0,
+          "statusCode": 400,
+          "label": "Invalid Email",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "body",
+              "modifier": "email",
+              "value": "not-an-email-address",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "e50ca948-eee3-41d9-903c-602c4937e5ae",
+      "type": "http",
+      "documentation": "Get Profile",
+      "method": "get",
+      "endpoint": "api/users/profile",
+      "responses": [
+        {
+          "uuid": "3dc9470a-fbe2-43b2-b24d-c54537e9d7a0",
+          "body": "{\n  \"id\": 1,\n  \"username\": \"holkarmahesh\",\n  \"email\": \"holkarmahesh1@gmail.com\",\n  \"firstName\": \"Mahesh\",\n  \"lastName\": \"Holkar\",\n  \"mobileNumber\": \"7777777772\"\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "Get Profile Success",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "e03a2c99-7321-4768-b990-c0a5c50592c1",
+          "body": "{\n  \"message\": \"Unauthorized access - Token missing or invalid\",\n  \"error\": \"Unauthorized\"\n}",
+          "latency": 0,
+          "statusCode": 401,
+          "label": "Unauthorized Profile Access",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "header",
+              "modifier": "Authorization",
+              "value": "",
+              "invert": false,
+              "operator": "null"
+            },
+            {
+              "target": "header",
+              "modifier": "Authorization",
+              "value": ".*malformed_or_expired.*",
+              "invert": false,
+              "operator": "regex"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "5216ed03-75e0-4ba8-9de8-a8fe03192f39",
+      "type": "http",
+      "documentation": "Update Profile",
+      "method": "put",
+      "endpoint": "api/users/profile",
+      "responses": [
+        {
+          "uuid": "f6bd5efe-55d3-4036-9a79-4051ddfb4d2c",
+          "body": "{\n  \"id\": 1,\n  \"username\": \"holkarmahesh\",\n  \"email\": \"holkarmahesh1@gmail.com\",\n  \"firstName\": \"Mayraji\",\n  \"lastName\": \"Holee\",\n  \"mobileNumber\": \"7777777772\"\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "Update Profile Success",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "9016d46d-6bce-4183-803a-2c49e61ffcd6",
+          "body": "{\n  \"message\": \"Unauthorized access\",\n  \"error\": \"Unauthorized\"\n}",
+          "latency": 0,
+          "statusCode": 401,
+          "label": "Unauthorized Profile Update",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "header",
+              "modifier": "Authorization",
+              "value": ".*invalid_token.*",
+              "invert": false,
+              "operator": "regex"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "deddfe18-04e6-4d20-b189-ef2a398a47dd",
+      "type": "http",
+      "documentation": "Orders List with Pagination",
+      "method": "get",
+      "endpoint": "api/orders",
+      "responses": [
+        {
+          "uuid": "aa8caf5b-2ba9-456a-87f7-7536d76d4a30",
+          "body": "{\n  \"page\": 1,\n  \"limit\": 10,\n  \"total\": 2,\n  \"data\": [\n    { \"orderId\": 101, \"item\": \"Laptop\", \"amount\": 1200.00, \"status\": \"PENDING\" },\n    { \"orderId\": 102, \"item\": \"Mouse\", \"amount\": 25.50, \"status\": \"DELIVERED\" }\n  ]\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "Paginated Orders",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "7ed71053-4a04-4523-a556-47f4277fb626",
+      "type": "http",
+      "documentation": "Get Order By ID",
+      "method": "get",
+      "endpoint": "api/orders/:id",
+      "responses": [
+        {
+          "uuid": "dfe81afb-9f3d-48d7-80ad-001005a66e44",
+          "body": "{\n  \"orderId\": 101,\n  \"item\": \"Laptop\",\n  \"amount\": 1200.00,\n  \"status\": \"PENDING\"\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "Order Found",
+          "headers": [
+            {
+              "key": "X-Request-Id",
+              "value": "req-trace-98765"
+            }
+          ],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "bc638e20-f91c-4f9f-849e-88d3ec54b495",
+      "type": "http",
+      "documentation": "Update Order Status",
+      "method": "patch",
+      "endpoint": "api/orders/:id",
+      "responses": [
+        {
+          "uuid": "fa3cc9b6-8c74-42ec-a330-43559ba8430e",
+          "body": "{\n  \"orderId\": 101,\n  \"item\": \"Laptop\",\n  \"amount\": 1200.00,\n  \"status\": \"SHIPPED\"\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "Order Status Patched",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "d2f0febe-237c-42fb-a58a-e9693b3a843d",
+      "type": "http",
+      "documentation": "Cancel Order",
+      "method": "delete",
+      "endpoint": "api/orders/:id",
+      "responses": [
+        {
+          "uuid": "14a9f0fd-34c9-491a-a0af-cc0cac308aa4",
+          "body": "{\n  \"message\": \"Order 101 cancelled successfully\"\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "Order Deleted",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "69ab25b3-0ac8-47ba-8c0a-a28d4505f952",
+      "type": "http",
+      "documentation": "Upload Invoice",
+      "method": "post",
+      "endpoint": "api/orders/:id/invoice",
+      "responses": [
+        {
+          "uuid": "84fecccf-250c-44ae-886b-fdaa8144f862",
+          "body": "{\n  \"message\": \"Invoice uploaded successfully\",\n  \"orderId\": 101\n}",
+          "latency": 0,
+          "statusCode": 201,
+          "label": "Invoice Created",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "9f12d2ba-7bf1-4bb4-bdbf-8830f13819f1",
+      "type": "http",
+      "documentation": "Basic Auth Check",
+      "method": "get",
+      "endpoint": "api/auth/basic",
+      "responses": [
+        {
+          "uuid": "2db34869-251d-4fc6-b676-104906244616",
+          "body": "{\"authType\": \"BASIC_PREEMPTIVE\", \"status\": \"AUTHORIZED\"}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "Basic Auth Success",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "header",
+              "modifier": "Authorization",
+              "value": "Basic YWRtaW46YWRtaW4xMjM=",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "182c6fb0-7fe4-46a0-b075-31e1b0b58f54",
+          "body": "{\"error\": \"Unauthorized\", \"message\": \"Invalid basic auth credentials\"}",
+          "latency": 0,
+          "statusCode": 401,
+          "label": "Basic Auth Failed",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "92f5dc0b-45ae-4eb3-9420-d61dc971138a",
+      "type": "http",
+      "documentation": "Digest Auth Check",
+      "method": "get",
+      "endpoint": "api/auth/digest",
+      "responses": [
+        {
+          "uuid": "6f46bcfd-63c1-4e60-b016-4eaacba0d910",
+          "body": "{\"status\": \"AUTHENTICATED_DIGEST\", \"realm\": \"qa-realm\"}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "Digest Auth Authenticated",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "header",
+              "modifier": "Authorization",
+              "value": "Digest",
+              "invert": false,
+              "operator": "array_includes"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "b1c083db-7e0c-4802-8bcd-f117181631f1",
+          "body": "{}",
+          "latency": 0,
+          "statusCode": 401,
+          "label": "Digest Auth Challenge",
+          "headers": [
+            {
+              "key": "WWW-Authenticate",
+              "value": "Digest realm=\"qa-realm\", nonce=\"mock-nonce-123\", qop=\"auth\""
+            }
+          ],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "dba9ca60-1a99-49b1-9b41-ebe950f34a2d",
+      "type": "http",
+      "documentation": "API Key Query Parameter Check",
+      "method": "get",
+      "endpoint": "api/auth/api-key-query",
+      "responses": [
+        {
+          "uuid": "0e4d0d63-de5e-432d-acf0-6b405a002ceb",
+          "body": "{\"message\": \"API Key authorized via query parameter\", \"status\": \"SUCCESS\"}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "API Key Query Success",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "query",
+              "modifier": "api_key",
+              "value": "valid-secret-query-key-123",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "bc6f985f-da69-4d61-a198-657ef857d801",
+          "body": "{\"error\": \"Unauthorized\", \"message\": \"Invalid query parameter api_key\"}",
+          "latency": 0,
+          "statusCode": 401,
+          "label": "API Key Query Unauthorized",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "23d43a2f-5bde-418f-accb-85bc2cac3817",
+      "type": "http",
+      "documentation": "API Key Header Check",
+      "method": "get",
+      "endpoint": "api/auth/api-key-header",
+      "responses": [
+        {
+          "uuid": "09d4c32a-2f7b-47cc-a9db-07af455b7f90",
+          "body": "{\n  \"message\": \"API Key authorized via header\",\n  \"status\": \"SUCCESS\"\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "API Key Header Success",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "header",
+              "modifier": "X-API-KEY",
+              "value": "valid-secret-api-key-xyz",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "f9ed597f-9b46-4ab2-9f4d-1f20bdbc7248",
+          "body": "{\n  \"error\": \"Unauthorized\",\n  \"message\": \"Invalid or missing X-API-KEY header\"\n}",
+          "latency": 0,
+          "statusCode": 401,
+          "label": "API Key Header Unauthorized",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "be5fe737-bae3-4bd6-ac04-4fab55ed9e8b",
+      "type": "http",
+      "documentation": "OAuth 2.0 Token Generation",
+      "method": "post",
+      "endpoint": "api/oauth/token",
+      "responses": [
+        {
+          "uuid": "72450ba3-c1d5-4e9f-a405-9b92bd471263",
+          "body": "{\n  \"access_token\": \"mocked-oauth2-bearer-token-999\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 3600,\n  \"scope\": \"read:reports\"\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "Token Issued",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "f472c656-bed6-4e90-b152-07deda6534de",
+      "type": "http",
+      "documentation": "Protected OAuth 2.0 Resource",
+      "method": "get",
+      "endpoint": "api/secure/oauth-resource",
+      "responses": [
+        {
+          "uuid": "5ca2fd98-307b-419a-927a-2cdf5df2c994",
+          "body": "{\"data\": \"Confidential Report Data\", \"scope\": \"read:reports\"}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "Access Granted",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "header",
+              "modifier": "Authorization",
+              "value": "Bearer mocked-oauth2-bearer-token-999",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "6f4964ac-681b-4a6f-a0b5-d392e22537ba",
+          "body": "{\"error\": \"Unauthorized\", \"message\": \"Invalid OAuth2 bearer token\"}",
+          "latency": 0,
+          "statusCode": 401,
+          "label": "Invalid Token",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "95a9b896-1fb8-4d14-95c1-f836bf3a67cb",
+      "type": "http",
+      "documentation": "Signature Validation",
+      "method": "get",
+      "endpoint": "api/auth/signature",
+      "responses": [
+        {
+          "uuid": "1653c3be-256f-4ab8-b501-9666cc6a3f65",
+          "body": "{\"message\": \"Signature verified successfully\"}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "Signature Verified",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "header",
+              "modifier": "X-Signature",
+              "value": "sha256-mocked-signature-hash",
+              "invert": false,
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "d7d664c3-c94e-4893-98a2-2da09973809f",
+          "body": "{\"error\": \"Unauthorized\", \"message\": \"Invalid or expired signature\"}",
+          "latency": 0,
+          "statusCode": 401,
+          "label": "Signature Rejected",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    }
+  ],
+  "rootChildren": [
+    { "type": "route", "uuid": "c51ff604-c56f-426f-aa76-f6a79aa6e50d" },
+    { "type": "route", "uuid": "be7caf62-c73d-4735-80c4-b269b0fa0f06" },
+    { "type": "route", "uuid": "e50ca948-eee3-41d9-903c-602c4937e5ae" },
+    { "type": "route", "uuid": "5216ed03-75e0-4ba8-9de8-a8fe03192f39" },
+    { "type": "route", "uuid": "deddfe18-04e6-4d20-b189-ef2a398a47dd" },
+    { "type": "route", "uuid": "7ed71053-4a04-4523-a556-47f4277fb626" },
+    { "type": "route", "uuid": "bc638e20-f91c-4f9f-849e-88d3ec54b495" },
+    { "type": "route", "uuid": "d2f0febe-237c-42fb-a58a-e9693b3a843d" },
+    { "type": "route", "uuid": "69ab25b3-0ac8-47ba-8c0a-a28d4505f952" },
+    { "type": "route", "uuid": "9f12d2ba-7bf1-4bb4-bdbf-8830f13819f1" },
+    { "type": "route", "uuid": "92f5dc0b-45ae-4eb3-9420-d61dc971138a" },
+    { "type": "route", "uuid": "dba9ca60-1a99-49b1-9b41-ebe950f34a2d" },
+    { "type": "route", "uuid": "23d43a2f-5bde-418f-accb-85bc2cac3817" },
+    { "type": "route", "uuid": "be5fe737-bae3-4bd6-ac04-4fab55ed9e8b" },
+    { "type": "route", "uuid": "f472c656-bed6-4e90-b152-07deda6534de" },
+    { "type": "route", "uuid": "95a9b896-1fb8-4d14-95c1-f836bf3a67cb" }
+  ],
+  "proxyMode": false,
+  "proxyHost": "",
+  "proxyRemovePrefix": false,
+  "tlsOptions": {
+    "enabled": false,
+    "type": "CERT",
+    "pfxPath": "",
+    "certPath": "",
+    "keyPath": "",
+    "caPath": "",
+    "passphrase": ""
+  },
+  "cors": true,
+  "headers": [
+    {
+      "key": "Content-Type",
+      "value": "application/json"
+    },
+    {
+      "key": "Access-Control-Allow-Origin",
+      "value": "*"
+    },
+    {
+      "key": "Access-Control-Allow-Methods",
+      "value": "GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS"
+    },
+    {
+      "key": "Access-Control-Allow-Headers",
+      "value": "Content-Type, Origin, Accept, Authorization, Content-Length, X-Requested-With"
+    }
+  ],
+  "proxyReqHeaders": [{ "key": "", "value": "" }],
+  "proxyResHeaders": [{ "key": "", "value": "" }],
+  "data": [],
+  "callbacks": []
+}

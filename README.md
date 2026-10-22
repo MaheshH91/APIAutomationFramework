@@ -1,439 +1,314 @@
-# REST Assured API Automation Framework
+# Enterprise REST Assured API Automation Framework
 
-A Java-based API automation framework built with **REST Assured**, **TestNG**, and reusable utilities for configuration, logging, reporting, authentication, and database access. The framework is designed to keep API tests maintainable, reusable, and easy to execute locally or in a CI environment.
+[![Java 21](https://img.shields.io/badge/Java-21-orange.svg)](https://www.oracle.com/java/technologies/downloads/#java21)
+[![REST Assured](https://img.shields.io/badge/REST%20Assured-5.5.0-green.svg)](https://rest-assured.io/)
+[![TestNG](https://img.shields.io/badge/TestNG-7.10.2-red.svg)](https://testng.org/)
+[![ExtentReports](https://img.shields.io/badge/ExtentReports-5.1.2-blue.svg)](https://www.extentreports.com/)
+[![CI/CD](https://img.shields.io/badge/Jenkins-Pipeline%20Ready-brightgreen.svg)](https://www.jenkins.io/)
 
-> **Project note:** This README is based on the supplied framework source. Confirm the exact dependency versions, Maven commands, and endpoint paths against your current `pom.xml`, configuration files, and TestNG suite before publishing.
+A thread-safe, modular, and CI/CD-ready REST API test automation framework built with **Java 21**, **REST Assured**, **TestNG**, and **Maven**. Designed with a clean separation of concerns following industry standards, featuring thread-safe token caching, comprehensive logging with **Log4j2**, automated retries, and dual test reporting with **ExtentReports 5** and **TestNG Emailable Reports**.
 
-## Table of Contents
+## 👤 Author & Profiles
 
-- [Overview](#overview)
-- [Technology Stack](#technology-stack)
-- [Architecture](#architecture)
-- [Project Structure](#project-structure)
-- [Framework Features](#framework-features)
-- [Configuration](#configuration)
-- [Prerequisites](#prerequisites)
-- [Setup](#setup)
-- [Execution](#execution)
-- [Reporting and Logs](#reporting-and-logs)
-- [Test Coverage](#test-coverage)
-- [Adding a New API Test](#adding-a-new-api-test)
-- [CI/CD Suggestions](#cicd-suggestions)
-- [Security Best Practices](#security-best-practices)
-- [Troubleshooting](#troubleshooting)
+- **GitHub:** [MaheshH91](https://github.com/MaheshH91)
+- **LinkedIn:** [Add your LinkedIn profile URL](https://www.linkedin.com/in/maheshholkarqaengineer/)
 
-## Overview
+> Replace the LinkedIn link above with your personal LinkedIn profile URL before publishing.
 
-The framework provides shared setup and reusable components for API testing, including:
-
-- Centralized REST Assured configuration.
-- Reusable request and response specifications.
-- TestNG lifecycle hooks and test listeners.
-- ExtentReports HTML reporting.
-- Log4j-based execution logging.
-- Shared configuration access through `ConfigReader`.
-- Database utility access through `DatabaseUtil`.
-- Model classes for request/response serialization and deserialization.
-- Authentication-token access through the test listener.
-- Request/response details and failure diagnostics for troubleshooting.
-- Thread-local ExtentReports test instances to help isolate reporting during parallel execution.
-
-The source indicates a local JSON-server-style API base path is used in some report metadata. Configure the actual target URL for your environment before running tests.
-
-## Technology Stack
-
-| Technology | Purpose |
-|---|---|
-| Java | Programming language for test automation |
-| REST Assured | HTTP requests, API response handling, and assertions |
-| TestNG | Test organization, lifecycle hooks, listeners, and suite execution |
-| ExtentReports | HTML execution reports |
-| Log4j | Framework and test execution logging |
-| Jackson | JSON serialization/deserialization and model mapping |
-| Lombok | Reduces boilerplate in model classes |
-| Gson | JSON formatting in request/response reporting |
-| Maven | Dependency management and build execution, if configured in the project |
-| Database utility | Shared database connection/access helper, where configured |
-
-Use the dependency versions defined by the project’s `pom.xml` as the source of truth.
-
-## Architecture
-
-```text
-                         TestNG Suite
-                              |
-                              v
-                       API Test Classes
-                              |
-                              v
-                         BaseTest
-                 /            |            \
-                v             v             v
-        ConfigReader     Request/Response   TestListener
-                             Specs          / ExtentReports
-                \             |             /
-                 \            v            /
-                     REST Assured Requests
-                              |
-                              v
-                         Target API
-                              |
-                +-------------+-------------+
-                |                           |
-                v                           v
-          API Response                 Database Utility
-                |
-                v
-        Assertions / Model Mapping
-                |
-                v
-       Logs + Extent HTML Report
-```
-
-### Main components
-
-- **`com.api.base.BaseTest`** — initializes configuration, REST Assured defaults, request/response specifications, logging hooks, and database cleanup.
-- **`com.api.base.ExtentManager`** — creates a timestamped ExtentReports HTML report and configures report metadata and views.
-- **`com.api.listeners.TestListener`** — records test outcomes, duration, exceptions, request/response information, and authentication-token access.
-- **`com.api.models`** — contains typed model classes used to represent API data.
-- **`com.api.utils.ConfigReader`** — provides configuration values such as base URL, port, and base path.
-- **`com.api.utils.DatabaseUtil`** — provides database utility access and closes the connection after the suite.
-
-## Project Structure
-
-The exact directory layout may vary. Based on the source package declarations, a typical layout is:
-
-```text
-RestAssured-Framework/
-├── pom.xml
-├── testng.xml                         # if configured
-├── src/
-│   ├── main/
-│   │   └── java/
-│   │       └── com/api/
-│   │           ├── base/
-│   │           │   ├── BaseTest.java
-│   │           │   └── ExtentManager.java
-│   │           ├── listeners/
-│   │           │   └── TestListener.java
-│   │           ├── models/
-│   │           │   ├── Post.java
-│   │           │   ├── Comment.java
-│   │           │   └── User.java
-│   │           └── utils/
-│   │               ├── ConfigReader.java
-│   │               └── DatabaseUtil.java
-│   └── test/
-│       ├── java/                      # API test classes
-│       └── resources/                 # configuration and test resources
-├── reports/
-│   └── extent-reports/                # generated HTML reports
-└── README.md
-```
-
-This is an illustrative structure. Keep only paths and files that actually exist in your repository.
-
-## Framework Features
-
-### 1. Centralized REST Assured Setup
-
-At suite startup, `BaseTest` loads configuration and sets REST Assured's base URI, port, and base path. Request and response logging filters are configured to help diagnose failed calls.
-
-### 2. Reusable Specifications
-
-A shared request specification sets JSON content and accept headers, plus a framework User-Agent header. A shared response specification expects JSON responses. If an endpoint returns a different content type, use an endpoint-specific specification or assertion instead of assuming all responses are JSON.
-
-### 3. TestNG Lifecycle Management
-
-`BaseTest` uses suite, class, method, and teardown hooks to initialize shared components and log test outcomes. The listener records pass, fail, and skip results.
-
-### 4. HTML Reporting
-
-ExtentReports creates a timestamped HTML report under:
-
-```text
-reports/extent-reports/
-```
-
-The report is configured with dashboard, test, category, author, device, exception, and log views. Report files are generated during execution; open the latest generated HTML file in a browser to review the results.
-
-### 5. Request and Response Diagnostics
-
-The listener can capture request/response details, HTTP method, endpoint, response status/body, execution duration, and exception stack traces. Be careful not to expose credentials, access tokens, personal data, or other secrets in logs or reports.
-
-### 6. Model-Based JSON Handling
-
-Model classes use Jackson annotations and Lombok to simplify mapping between JSON payloads and Java objects. Use typed models where they make payload construction and response validation clearer.
-
-### 7. Authentication Token Helper
-
-The listener exposes methods to set and retrieve an authentication token. Ensure token lifecycle and storage are safe for the chosen execution model. A single static token can cause data leakage or test interference when parallel tests use different users; prefer thread-scoped or test-scoped token storage for parallel authenticated scenarios.
-
-### 8. Database Utility
-
-The base test obtains a shared `DatabaseUtil` instance and closes its connection after the suite. Use database checks only where they are part of the intended test strategy, and avoid coupling API tests unnecessarily to internal implementation details.
-
-## Configuration
-
-Configuration is loaded through `ConfigReader`. The source shows these values being used:
-
-- Base URL
-- Port
-- Base path
-
-Review the implementation of `ConfigReader` to confirm the actual configuration file and property names. A common configuration example is:
-
-```properties
-base.url=http://localhost
-port=3000
-base.path=/json-server-api
-```
-
-These property names are examples only; use the exact keys expected by your `ConfigReader`.
-
-**Recommended:** keep separate settings for local, QA, staging, and other environments. Avoid hardcoding environment URLs in test classes or report metadata.
-
-## Prerequisites
-
-Install and configure:
-
-1. A JDK compatible with the project’s Maven compiler configuration.
-2. Maven, if the project is Maven-based.
-3. Git, if cloning the repository.
-4. Access to the target API and any required test database.
-5. Valid test credentials or API tokens, supplied securely where authentication is required.
-
-Check installations:
-
-```bash
-java -version
-mvn -version
-git --version
-```
-
-## Setup
-
-### 1. Get the source code
-
-```bash
-git clone <repository-url>
-cd RestAssured-Framework
-```
-
-If the project already exists locally, open the project root containing `pom.xml`.
-
-### 2. Configure the environment
-
-Update the configuration source consumed by `ConfigReader` with the intended base URL, port, and base path. Configure credentials and database settings using environment variables or a secure local configuration mechanism if supported.
-
-### 3. Resolve dependencies
-
-```bash
-mvn clean test-compile
-```
-
-This command assumes the project uses Maven and that the POM is correctly configured.
-
-## Execution
-
-### Run the TestNG suite with Maven
-
-```bash
-mvn clean test
-```
-
-This is the standard command for Maven projects, but it runs tests only if the POM/Surefire configuration discovers the relevant TestNG tests or suite.
-
-### Run a specific TestNG suite
-
-If the repository contains a configured `testng.xml`, run it using the project’s configured Maven Surefire setup. For example, a common pattern is:
-
-```bash
-mvn clean test -Dsurefire.suiteXmlFiles=testng.xml
-```
-
-Confirm that the property is supported by your Surefire configuration before relying on this command.
-
-### Run from an IDE
-
-1. Import the project as a Maven project.
-2. Allow Maven dependencies to finish resolving.
-3. Set the correct environment configuration.
-4. Right-click a TestNG test class or `testng.xml`.
-5. Choose **Run As → TestNG Test**.
-
-### Execution tips
-
-- Start with one test class to verify connectivity and configuration.
-- Confirm the base URL and base path are not duplicated.
-- Use a dedicated test environment; avoid destructive tests against production.
-- Review the console logs and latest ExtentReports HTML file after execution.
-
-## Reporting and Logs
-
-### ExtentReports
-
-Reports are generated in:
-
-```text
-reports/extent-reports/ExtentReport_<timestamp>.html
-```
-
-Open the newest report file in a browser.
-
-### Logs
-
-The framework uses Log4j. The exact log destination and log level depend on the project’s Log4j configuration. Check the console and configured log files for suite startup, test outcome, and exception details.
-
-### Failure investigation checklist
-
-1. Check the HTTP method, endpoint, status code, and response body.
-2. Verify request headers, query parameters, path parameters, and payload.
-3. Confirm authentication and environment configuration.
-4. Review the exception and stack trace.
-5. Check whether the API contract or test data has changed.
-6. Verify whether the failure is an API defect, test defect, environment issue, or data issue.
-
-## Test Coverage
-
-Organize API tests around the endpoints and requirements implemented in the repository. The following is a recommended coverage checklist, not a claim that every scenario is already automated.
-
-| Area | Scenarios to cover |
-|---|---|
-| HTTP status codes | Expected success and error status codes |
-| Response body | Required fields, values, data types, and schema/contract checks |
-| Headers | Content-Type, caching/security headers, and required custom headers |
-| CRUD operations | Create, retrieve, update/replace, partial update, and delete where supported |
-| Request validation | Missing fields, invalid formats, invalid types, and boundary values |
-| Authentication | Missing, invalid, expired, and valid credentials/tokens |
-| Authorization | Role-based access and forbidden operations |
-| Negative testing | Unknown IDs, invalid routes, malformed JSON, and unsupported methods |
-| Data integrity | API response compared with persisted state when appropriate |
-| Serialization | JSON-to-model and model-to-JSON mapping |
-| Reliability | Repeatability, cleanup, and environment stability |
-| Reporting | Pass/fail/skip status, duration, exception details, and useful diagnostics |
-
-Update this section with the actual test class names and scenarios once the test source tree has been reviewed.
-
-## Adding a New API Test
-
-A typical workflow is:
-
-1. Create or update a TestNG test class in the test source directory.
-2. Extend `BaseTest` to reuse framework setup.
-3. Use the shared request specification where appropriate.
-4. Send the request with REST Assured.
-5. Assert the status code, headers, and response body.
-6. Log useful, non-sensitive diagnostic information.
-7. Run the test and verify the ExtentReports output.
-
-Illustrative example:
-
-```java
-import com.api.base.BaseTest;
-import org.testng.annotations.Test;
-
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.notNullValue;
-
-public class ExampleApiTest extends BaseTest {
-
-    @Test
-    public void shouldReturnAnApiResource() {
-        given()
-            .spec(BaseTest.getRequestSpec())
-        .when()
-            .get("/your-resource")
-        .then()
-            .statusCode(200)
-            .body("id", notNullValue());
-    }
-}
-```
-
-Replace `/your-resource`, the expected status code, and the response assertions with the real endpoint contract. This snippet is illustrative and assumes the configured base URI and path are correct.
-
-## CI/CD Suggestions
-
-The framework can be integrated into a CI server such as Jenkins or another pipeline runner.
-
-A typical pipeline is:
-
-```text
-Checkout
-   |
-   v
-Install/select JDK
-   |
-   v
-Resolve Maven dependencies
-   |
-   v
-Load secure environment configuration
-   |
-   v
-Run automated API tests
-   |
-   +------> Publish test results
-   |
-   +------> Archive ExtentReports and logs
-```
-
-Recommended pipeline steps:
-
-```bash
-mvn -B clean test
-```
-
-Configure the pipeline to archive the generated `reports/extent-reports/` directory and any configured test logs. Ensure the report directory is created before archiving and that secrets are injected through the CI credential store.
-
-## Security Best Practices
-
-- Never commit passwords, API keys, bearer tokens, database credentials, or production secrets.
-- Keep local secret files out of version control.
-- Mask sensitive values in CI logs.
-- Avoid logging complete authorization headers or sensitive request/response bodies.
-- Use test accounts and non-production environments.
-- Do not use shared static authentication state for concurrent tests with different identities.
-- Ensure report artifacts have appropriate access controls.
-- Use least-privilege database credentials and close resources reliably.
-
-## Troubleshooting
-
-| Problem | Things to check |
-|---|---|
-| Connection refused / timeout | API service availability, host, port, network access, and base path |
-| 404 Not Found | Endpoint path, base path, API version, and test environment |
-| 401 Unauthorized | Token generation, credentials, token expiry, and auth header |
-| 403 Forbidden | User permissions and authorization setup |
-| Unexpected content-type assertion | Actual response Content-Type and whether the endpoint returns JSON |
-| Test class not discovered | TestNG annotations, Maven Surefire configuration, suite XML, and naming patterns |
-| Report not generated | Report directory permissions, listener registration, and whether the suite reached listener callbacks |
-| Parallel reporting/data issues | Static mutable state, token sharing, and thread-local cleanup |
-| Database connection errors | Connection properties, driver/dependency, network access, and database availability |
-
-## Contribution Workflow
-
-Before committing changes:
-
-```bash
-git status
-git diff
-```
-
-Use descriptive commit messages, keep test data non-sensitive, and include new scenarios in the relevant test suite. Run the affected tests locally before opening a pull request.
 
 ---
 
-## Maintainer Checklist
+## 📑 Table of Contents
+- [Architecture & Design Principles](#-architecture--design-principles)
+- [Directory Layout](#-directory-layout)
+- [Tech Stack & Dependencies](#-tech-stack--dependencies)
+- [Authentication & Security Coverage](#-authentication--security-coverage)
+- [Test Suites & Functional Coverage](#-test-suites--functional-coverage)
+- [Reporting & Logging](#-reporting--logging)
+- [Getting Started & Local Execution](#-getting-started--local-execution)
+- [CI/CD Jenkins Pipeline](#-cicd-jenkins-pipeline)
 
-Before treating this README as final project documentation, verify:
+---
 
-- [ ] Actual Java and dependency versions from `pom.xml`.
-- [ ] Exact configuration filename and property keys used by `ConfigReader`.
-- [ ] Real TestNG suite filename and supported Maven execution command.
-- [ ] Actual API base URL and resource paths.
-- [ ] Existing test classes and the scenarios they cover.
-- [ ] Log file location and Log4j configuration.
-- [ ] Database utility behavior and required environment variables.
-- [ ] Report output directory and CI artifact publishing configuration.
+## 🏛 Architecture & Design Principles
+
+* **Layered Architecture (`src/main/java` vs. `src/test/java`)**: Framework engines, service clients, and utilities are strictly isolated in `src/main/java`, while test cases, data providers, and assertions reside under `src/test/java`.
+* **Centralized Configuration**: All endpoint routes, headers, and timeouts are controlled via `Endpoints.java` and `FrameworkConstants.java`, eliminating hardcoded literals across test classes.
+* **Thread-Safe State & Token Management**: `TokenManager` leverages a `ConcurrentHashMap` cache to manage user JWT tokens during parallel test execution without race conditions.
+* **Thread-Safe Dashboard Reporting**: `ExtentManager` uses `ThreadLocal<ExtentTest>` to isolate test steps across concurrent threads.
+* **Automatic Failure Recovery**: Includes an `IAnnotationTransformer` paired with `RetryAnalyzer` to automatically retry flaky tests up to configured threshold limits.
+* **Dynamic Test Data Generation**: Uses `FakerDataFactory` to dynamically construct unique payloads for registration and profile updates, avoiding database collisions.
+
+---
+
+## 📂 Directory Layout
+
+```text
+APIAutomationFramework/
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── Jenkinsfile                          # Jenkins declarative pipeline configuration
+├── pom.xml                              # Maven build file with resolved compile/test scopes
+├── testng.xml                           # Master test suite runner with parallel execution
+├── API Automation Mock.json             # Mockoon API mock configuration (root)
+├── README.md                            # Project documentation
+└── src/
+    ├── main/
+    │   └── java/
+    │       └── com/api/
+    │           ├── config/
+    │           │   └── ConfigManager.java          # Environment-aware properties loader
+    │           ├── constants/
+    │           │   ├── Endpoints.java              # Centralized API endpoint routes
+    │           │   └── FrameworkConstants.java     # Timeouts, SLAs, paths, and headers
+    │           ├── filters/
+    │           │   └── LoggingFilter.java          # Request/response logger for Log4j2 & Extent
+    │           ├── models/
+    │           │   ├── request/                    # Request POJOs using Builder Pattern
+    │           │   │   ├── LoginRequest.java
+    │           │   │   ├── ProfileRequest.java
+    │           │   │   └── SignUpRequest.java
+    │           │   └── response/                   # Response deserialization POJOs
+    │           │       ├── LoginResponse.java
+    │           │       └── UserProfileResponse.java
+    │           ├── reporting/
+    │           │   ├── ExtentLogger.java           # Formatted HTML/JSON logger
+    │           │   └── ExtentManager.java          # ThreadLocal ExtentReports 5 engine
+    │           ├── services/                       # API service layer (extending BaseService)
+    │           │   ├── BaseService.java
+    │           │   ├── AuthService.java
+    │           │   ├── OrderService.java
+    │           │   ├── SecurityAuthService.java
+    │           │   └── UserProfileManagementService.java
+    │           └── utils/
+    │               ├── FakerDataFactory.java       # Dynamic timestamp-based data factory
+    │               ├── RequestBuilder.java         # Fluent request assembly utility
+    │               ├── ResponseValidator.java      # Reusable assertion helper
+    │               └── TokenManager.java           # Concurrent token cache manager
+    └── test/
+        ├── java/
+        │   └── com/api/
+        │       ├── listeners/
+        │       │   ├── AnnotationTransformer.java  # Injects retry analyzer at runtime
+        │       │   ├── RetryAnalyzer.java          # Configurable test retry policy
+        │       │   └── TestListener.java           # TestNG execution listener for Extent
+        │       ├── tests/
+        │       │   ├── BaseTest.java               # Global before/after hooks & suite setup
+        │       │   ├── AccountCreationTest.java    # User signup validation
+        │       │   ├── AdvancedApiTestingScenariosTest.java # Pagination, SLA, Multipart, Schema
+        │       │   ├── AuthNegativeTest.java       # Data-driven negative auth validations
+        │       │   ├── AuthorizationMechanismsTest.java # Basic, Digest, API Key, OAuth2, Signature
+        │       │   ├── ComprehensiveTestNGFeaturesTest.java # XML params, parallel data provider
+        │       │   ├── ForgotPasswordTest.java     # Password recovery API verification
+        │       │   ├── GetProfileRequestTest.java  # Authenticated profile retrieval
+        │       │   ├── LoginTest.java              # Happy-path login verification
+        │       │   ├── UpdateProfileTest.java      # Profile mutation validation
+        │       │   ├── UserLifecycleE2ETest.java   # End-to-end full user journey
+        │       │   └── UserProfileSecurityTest.java # Token integrity and 401 validation
+        │       └── utils/
+        │           └── TestDataProvider.java       # Parallel and method-aware DataProviders
+        └── resources/
+            ├── config.properties                   # Dynamic environment endpoints & credentials
+            ├── log4j2.xml                          # Console and rolling file logging configuration
+            ├── API Automation Mock.json            # Mockoon mock environment backup
+            └── schemas/
+                └── order-schema.json               # JSON Schema definition for contract testing
+
+```
+
+---
+
+## 🛠 Tech Stack & Dependencies
+
+| Tool / Library | Version | Usage |
+| --- | --- | --- |
+| **Java** | 21 (LTS) | Programming Language |
+| **REST Assured** | 5.5.0 | RESTful API Client and DSL |
+| **TestNG** | 7.10.2 | Test Runner, Assertions, and Parallel Execution |
+| **Jackson Databind** | 2.18.2 | POJO Serialization and Deserialization |
+| **ExtentReports** | 5.1.2 | HTML Dashboard Reporting |
+| **Log4j2** | 2.24.1 | Asynchronous Application and Execution Logging |
+| **JSON Schema Validator** | 5.5.0 | Contract Validation against Draft-04 JSON Schemas |
+| **Mockoon CLI** | Latest | Lightweight Local REST API Mocking Engine |
+| **Jenkins** | 2.x | Continuous Integration and Pipeline Orchestration |
+
+---
+
+## 🔐 Authentication & Security Coverage
+
+The framework contains production-grade implementations and tests across all major API authorization schemes via `SecurityAuthService`:
+
+1. **Bearer Token (JWT)**: Dynamically captured and injected via `TokenManager` into headers (`Authorization: Bearer <token>`).
+2. **Basic Authentication**: Supports both **Preemptive** and **Challenged** basic auth flows with valid and invalid credential matrices.
+3. **Digest Authentication**: Validates challenge handshakes and `WWW-Authenticate` realm handling.
+4. **API Key Authentication**: Tests key delivery across both **Custom Headers** (`X-API-KEY`) and **Query Parameters** (`?api_key=...`).
+5. **OAuth 2.0 (Client Credentials Grant)**: Posts client credentials to fetch an access token, then verifies resource consumption using the issued bearer token.
+6. **Custom HMAC / Signature**: Injects timestamped cryptographic signatures (`X-Signature` & `X-Timestamp`) for zero-trust service-to-service validation.
+
+---
+
+## 🧪 Test Suites & Functional Coverage
+
+| Test Class | Focus Area | Key Scenarios |
+| --- | --- | --- |
+| `AccountCreationTest` | User Management | Dynamic user registration with unique emails and usernames. |
+| `LoginTest` | Authentication | Validates successful credential authentication and JWT receipt. |
+| `AuthNegativeTest` | Error Handling | Parallel data-driven test for 400 Bad Request and 401 Unauthorized handling. |
+| `UserProfileSecurityTest` | Security | Verifies access rejection on omitted, expired, or malformed tokens. |
+| `GetProfileRequestTest` | Data Retrieval | Retrieves and deserializes profile data into `UserProfileResponse`. |
+| `UpdateProfileTest` | Data Mutation | Updates user fields and asserts changes via `ProfileRequest.Builder`. |
+| `UserLifecycleE2ETest` | Full E2E Flow | Registration -> Login -> Fetch Profile -> Update Profile. |
+| `AuthorizationMechanismsTest` | Security Schemes | Basic, Digest, API Key, OAuth 2.0, and HMAC signature validations. |
+| `AdvancedApiTestingScenariosTest` | Advanced REST | Pagination, SLA assertions (< 2000ms), Multipart file upload, and JSON Schema contract validation. |
+| `ComprehensiveTestNGFeaturesTest` | Framework Engine | TestNG XML parameter injection, method dependencies, priority ordering, and concurrency simulation. |
+
+---
+
+## 📊 Reporting & Logging
+
+### Dual Reporting Architecture
+
+1. **ExtentReports 5 Dashboard**: Generated at `target/extent-reports/extentReport.html`. Includes dark-mode dashboard metrics, test execution timestamps, author tagging, categorization, and formatted JSON code blocks for all requests and responses.
+2. **TestNG Emailable Report**: Generated at `target/surefire-reports/emailable-report.html`. A lightweight, self-contained single-page report ideal for CI email notifications.
+3. **Surefire XML Results**: Stored at `target/surefire-reports/testng-results.xml` for consumption by the Jenkins JUnit publisher.
+
+### Centralized Logging
+
+* **Log4j2 Console & File Appender**: Configured via `src/test/resources/log4j2.xml`. All API interactions are logged both to standard console output and saved to `logs/test.log`.
+* **LoggingFilter**: Captures HTTP methods, request URIs, payload contents, response codes, and bodies, forwarding entries to both Log4j2 and ExtentReports.
+
+---
+
+## 🚀 Getting Started & Local Execution
+
+### Prerequisites
+
+* **Java Development Kit (JDK)**: 21 or higher installed and configured in `JAVA_HOME`.
+* **Apache Maven**: 3.9+ installed and configured in `PATH`.
+* **Mockoon CLI** (Optional for CI/Local): Run `npm install -g @mockoon/cli` or start the Mockoon Desktop App on port `8089`.
+
+### 1. Start the Local Mock Server
+
+If using Mockoon CLI:
+
+```bash
+mockoon-cli start --data "API Automation Mock.json" --port 8089
+
+```
+
+### 2. Compile the Framework
+
+```bash
+mvn clean compile test-compile
+
+```
+
+### 3. Run the Complete Test Suite
+
+```bash
+mvn test -DsuiteXmlFile=testng.xml
+
+```
+
+### 4. Run with Specific Environment
+
+Pass dynamic parameters to switch configurations:
+
+```bash
+mvn test -DsuiteXmlFile=testng.xml -Denv=qa
+
+```
+
+---
+
+## 🔄 CI/CD Jenkins Pipeline
+
+The project includes an enterprise declarative `Jenkinsfile` featuring automated dependency provisioning, mock server lifecycle control, and report publishing:
+
+```groovy
+pipeline {
+    agent any
+
+    tools {
+        jdk 'JAVA_HOME'
+        maven 'MAVEN_HOME'
+    }
+
+    environment {
+        MOCK_FILE = 'API Automation Mock.json'
+        MOCK_PORT = '8089'
+    }
+
+    stages {
+        stage('Checkout Source') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Start Mock Server') {
+            steps {
+                script {
+                    if (fileExists("${env.MOCK_FILE}")) {
+                        bat "mockoon-cli start --data \"%MOCK_FILE%\" --port %MOCK_PORT% || exit 0"
+                    } else if (fileExists("src/test/resources/${env.MOCK_FILE}")) {
+                        bat "mockoon-cli start --data \"src\\test\\resources\\%MOCK_FILE%\" --port %MOCK_PORT% || exit 0"
+                    }
+                }
+            }
+        }
+
+        stage('Compile & Validate') {
+            steps {
+                bat 'mvn clean test-compile'
+            }
+        }
+
+        stage('Run API Test Suite') {
+            steps {
+                bat 'mvn test -DsuiteXmlFile=testng.xml'
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                bat 'mockoon-cli stop --all || mockoon-cli stop all || exit 0'
+            }
+
+            // JUnit / Surefire Trend Processing
+            junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+
+            // Publish TestNG Native HTML Report
+            publishHTML([
+                allowMissing: true,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: 'target/surefire-reports',
+                reportFiles: 'emailable-report.html',
+                reportName: 'TestNG Emailable Report',
+                reportTitles: 'TestNG Execution Report'
+            ])
+
+            // Publish ExtentReports Dashboard
+            publishHTML([
+                allowMissing: true,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: 'target/extent-reports',
+                reportFiles: 'extentReport.html',
+                reportName: 'Extent Report',
+                reportTitles: 'Enterprise API Test Automation Report'
+            ])
+
+            // Archive Build Artifacts
+            archiveArtifacts artifacts: 'target/surefire-reports/**, target/extent-reports/**', allowEmptyArchive: true
+        }
+    }
+}
+
+```
+
+```

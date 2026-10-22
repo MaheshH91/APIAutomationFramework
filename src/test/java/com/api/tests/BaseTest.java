@@ -1,17 +1,21 @@
 package com.api.tests;
 
 import java.lang.reflect.Method;
-
 import org.testng.ITestContext;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Optional;
+import org.testng.annotations.Parameters;
 
-import com.api.base.AuthService;
-import com.api.models.request.LoginRequest;
-import com.api.models.response.LoginResponse;
-import com.api.utils.ConfigManager;
-
+import com.api.config.ConfigManager;
+import com.api.services.AuthService;
+import com.api.utils.TokenManager;
 import io.restassured.RestAssured;
-import io.restassured.response.Response;
 
 public abstract class BaseTest {
 
@@ -20,51 +24,39 @@ public abstract class BaseTest {
 
     @BeforeSuite(alwaysRun = true)
     public void beforeSuiteSetup() {
-        // Disable Jansi globally (avoids console warnings)
         System.setProperty("log4j.skipJansi", "true");
-
-        // Load base URL from config
         RestAssured.baseURI = ConfigManager.getBaseUrl();
-
-        System.out.println(">>> [BEFORE SUITE] Initializing Global Test Suite & Environment Config");
-        System.out.println("✅ Base URI configured: " + RestAssured.baseURI);
     }
 
     @BeforeTest(alwaysRun = true)
     @Parameters({ "environment" })
     public void beforeTestSetup(@Optional("dev") String environment, ITestContext context) {
-        System.out.println(">>> [BEFORE TEST] Executing Test Tag: " + context.getName() + " on Env: " + environment);
+        // Test context tagging logic
     }
 
     @BeforeClass(alwaysRun = true)
     public void beforeClassSetup() {
         authService = new AuthService();
-        Response response = authService.login(new LoginRequest("holkarmahesh", "Raj@1234"));
-        jwtToken = response.as(LoginResponse.class).getToken();
+        jwtToken = TokenManager.getDefaultToken();
     }
 
     @BeforeMethod(alwaysRun = true)
     public void beforeMethodSetup(Method method) {
-        System.out.println(">>> [START TEST METHOD]: " + method.getName());
+        // Method tracking
     }
 
     @AfterMethod(alwaysRun = true)
     public void afterMethodTeardown(Method method) {
-        System.out.println("<<< [COMPLETED TEST METHOD]: " + method.getName());
+        // Cleanup per method
     }
 
     @AfterClass(alwaysRun = true)
     public void afterClassTeardown() {
-        System.out.println("<<< [AFTER CLASS] Cleaning Class Context");
-    }
-
-    @AfterTest(alwaysRun = true)
-    public void afterTestTeardown(ITestContext context) {
-        System.out.println("<<< [AFTER TEST] Finished: " + context.getName());
+        // Context teardown
     }
 
     @AfterSuite(alwaysRun = true)
     public void afterSuiteTeardown() {
-        System.out.println("<<< [AFTER SUITE] Flushing ExtentReports & Releasing Mock Server Hooks");
+        TokenManager.clearTokenCache();
     }
 }

@@ -1,7 +1,5 @@
 package com.api.listeners;
 
-import java.util.Arrays;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.testng.ITestContext;
@@ -12,7 +10,6 @@ import com.api.reporting.ExtentManager;
 import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.ExtentTest;
 import com.aventstack.extentreports.Status;
-import com.aventstack.extentreports.markuputils.CodeLanguage;
 import com.aventstack.extentreports.markuputils.ExtentColor;
 import com.aventstack.extentreports.markuputils.MarkupHelper;
 
@@ -31,12 +28,10 @@ public class TestListener implements ITestListener {
         String testName = result.getMethod().getMethodName();
         String description = result.getMethod().getDescription();
 
-        // Create test node with description if available
         ExtentTest test = (description != null && !description.isBlank())
                 ? extent.createTest(testName, description)
                 : extent.createTest(testName);
 
-        // Assign author and groups / categories
         test.assignAuthor("SDET Automation Lead");
         String[] groups = result.getMethod().getGroups();
         if (groups != null && groups.length > 0) {

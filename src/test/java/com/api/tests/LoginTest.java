@@ -4,22 +4,29 @@ import org.testng.Assert;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
+import com.api.config.ConfigManager;
+import com.api.models.request.LoginRequest;
+import com.api.models.response.LoginResponse;
+import com.api.services.AuthService;
+
 import io.restassured.response.Response;
-import static io.restassured.RestAssured.*;
+
 @Listeners(com.api.listeners.TestListener.class)
 public class LoginTest {
 
-    @Test(description = "Verifying login API is working....")
+    @Test(description = "Verify login API with valid credentials from config")
     public void loginTest() {
-        Response response = given()
-            .baseUri("http://64.227.160.186:8080")
-            .basePath("/api/auth/login")
-            .header("Content-type", "application/json")
-            .body("{\"username\": \"holkarmahesh\", \"password\": \"Raj@1234\"}")
-        .when()
-            .post();
+        AuthService authService = new AuthService();
+        LoginRequest loginRequest = new LoginRequest(
+                ConfigManager.get("username"),
+                ConfigManager.get("password")
+        );
 
-        System.out.println(response.asPrettyString());
+        Response response = authService.login(loginRequest);
         Assert.assertEquals(response.getStatusCode(), 200);
+
+        LoginResponse loginResponse = response.as(LoginResponse.class);
+        Assert.assertNotNull(loginResponse.getToken());
+        Assert.assertEquals(loginResponse.getUsername(), "holkarmahesh");
     }
 }

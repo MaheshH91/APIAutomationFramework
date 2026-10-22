@@ -6,16 +6,14 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.hamcrest.Matchers;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import com.api.base.AuthService;
-import com.api.base.OrderService;
-import com.api.models.request.LoginRequest;
-import com.api.models.response.LoginResponse;
+import com.api.constants.FrameworkConstants;
+import com.api.services.OrderService;
+import com.api.utils.TokenManager;
 
 import io.restassured.module.jsv.JsonSchemaValidator;
 import io.restassured.response.Response;
@@ -29,9 +27,7 @@ public class AdvancedApiTestingScenariosTest {
     @BeforeClass
     public void setup() {
         orderService = new OrderService();
-        AuthService authService = new AuthService();
-        Response loginRes = authService.login(new LoginRequest("holkarmahesh", "Raj@1234"));
-        jwtToken = loginRes.as(LoginResponse.class).getToken();
+        jwtToken = TokenManager.getDefaultToken();
     }
 
     @Test(description = "Verify Query Parameters and Pagination handling")
@@ -52,8 +48,7 @@ public class AdvancedApiTestingScenariosTest {
         Assert.assertEquals(response.jsonPath().getInt("orderId"), 101);
         Assert.assertEquals(response.jsonPath().getString("item"), "Laptop");
 
-        // Response Time SLA Assertion (< 2000 ms)
-        Assert.assertTrue(response.getTimeIn(TimeUnit.MILLISECONDS) < 2000, "Response time SLA breached");
+        Assert.assertTrue(response.getTimeIn(TimeUnit.MILLISECONDS) < FrameworkConstants.RESPONSE_TIME_SLA_MS, "Response time SLA breached");
     }
 
     @Test(description = "Verify PATCH operation for partial payload updates")
@@ -91,24 +86,13 @@ public class AdvancedApiTestingScenariosTest {
         Response response = orderService.getOrderById(101, jwtToken);
 
         Assert.assertTrue(response.getHeader("Content-Type").contains("application/json"));
-        Assert.assertNotNull(response.getHeader("X-Request-Id"), "Missing trace header");
+        Assert.assertNotNull(response.getHeader(FrameworkConstants.HEADER_REQUEST_ID), "Missing trace header");
     }
 
     @Test(description = "Verify JSON Schema contract validation")
     public void testJsonSchemaValidation() {
-        String expectedSchema = "{\n" +
-                "  \"$schema\": \"http://json-schema.org/draft-04/schema#\",\n" +
-                "  \"type\": \"object\",\n" +
-                "  \"properties\": {\n" +
-                "    \"orderId\": { \"type\": \"integer\" },\n" +
-                "    \"item\": { \"type\": \"string\" },\n" +
-                "    \"amount\": { \"type\": \"number\" },\n" +
-                "    \"status\": { \"type\": \"string\" }\n" +
-                "  },\n" +
-                "  \"required\": [\"orderId\", \"item\", \"amount\", \"status\"]\n" +
-                "}";
-
+        File schemaFile = new File(FrameworkConstants.SCHEMAS_PATH + "/order-schema.json");
         Response response = orderService.getOrderById(101, jwtToken);
-        response.then().assertThat().body(JsonSchemaValidator.matchesJsonSchema(expectedSchema));
+        response.then().assertThat().body(JsonSchemaValidator.matchesJsonSchema(schemaFile));
     }
 }
