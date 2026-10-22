@@ -1,7 +1,5 @@
 package com.api.services;
 
-import java.util.Map;
-
 import com.api.constants.Endpoints;
 import com.api.models.request.LoginRequest;
 import com.api.models.request.SignUpRequest;
@@ -10,16 +8,33 @@ import io.restassured.response.Response;
 
 public class AuthService extends BaseService {
 
-    public Response login(LoginRequest payload) {
-        return postRequest(payload, Endpoints.AUTH_LOGIN);
+    /**
+     * Authenticates the user credentials to generate a JWT token.
+     */
+    public Response login(LoginRequest loginRequest) {
+        return getRequestSpec()
+                .body(loginRequest)
+                .when()
+                .post(Endpoints.LOGIN_ENDPOINT);
     }
 
-    public Response signUp(SignUpRequest payload) {
-        return postRequest(payload, Endpoints.AUTH_SIGNUP);
+    /**
+     * Registers a new user account.
+     */
+    public Response signUp(SignUpRequest signUpRequest) {
+        return getRequestSpec()
+                .body(signUpRequest)
+                .when()
+                .post(Endpoints.SIGNUP_ENDPOINT);
     }
 
-    public Response forgotPassword(String emailAddress) {
-        Map<String, String> payload = Map.of("email", emailAddress);
-        return postRequest(payload, Endpoints.AUTH_FORGOT_PASSWORD);
+    /**
+     * Triggers a forgot password request.
+     */
+    public Response forgotPassword(String email) {
+        return getRequestSpec()
+                .body("{\"email\":\"" + email + "\"}")
+                .when()
+                .post(Endpoints.FORGOT_PASSWORD_ENDPOINT);
     }
 }

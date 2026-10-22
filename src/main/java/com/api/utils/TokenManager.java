@@ -1,7 +1,10 @@
 package com.api.utils;
 
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.api.config.ConfigManager;
 import com.api.models.request.LoginRequest;
@@ -10,27 +13,66 @@ import com.api.services.AuthService;
 
 import io.restassured.response.Response;
 
-public final class TokenManager {
-    private static final Map<String, String> TOKEN_CACHE = new ConcurrentHashMap<>();
+public class TokenManager {
 
-    private TokenManager() {}
+    private static final Logger log = LogManager.getLogger(TokenManager.class);
+    
+    // Concurrent map to cache tokens per username for multi-threaded/parallel execution
+    private static final Map<String, String> tokenCache = new ConcurrentHashMap<>();
 
+    private TokenManager() {
+        // Prevent direct instantiation
+    }
+
+    /**
+     * Retrieves the default admin/user JWT token using credentials from config.properties.
+     */
+  
     public static String getDefaultToken() {
-        return getTokenForUser(ConfigManager.get("username"), ConfigManager.get("password"));
+        String defaultUsername = ConfigManager.getProperty("valid.username", "holkarmahesh");
+        String defaultPassword = ConfigManager.getProperty("valid.password", "Raj@1234");
+        return getToken(defaultUsername, defaultPassword);
     }
 
-    public static String getTokenForUser(String username, String password) {
-        return TOKEN_CACHE.computeIfAbsent(username, user -> {
-            AuthService authService = new AuthService();
-            Response response = authService.login(new LoginRequest(user, password));
-            if (response.getStatusCode() != 200) {
-                throw new IllegalStateException("Authentication failed for user: " + user + " (HTTP " + response.getStatusCode() + ")");
+    /**
+     * Retrieves or generates a JWT Bearer token for the given credentials.
+     * Caches the token to avoid redundant network login calls across tests.
+     */
+    public static synchronized String getToken(String username, String password) {
+        if (tokenCache.containsKey(username) && tokenCache.get(username) != null) {
+            log.info("Fetching cached JWT token for user: {}", username);
+            return tokenCache.get(username);
+        }
+
+        log.info("Requesting new JWT token for user: {}", username);
+        AuthService authService = new AuthService();
+        LoginRequest loginPayload = new LoginRequest.Builder()
+                .username(username)
+                .password(password)
+                .build();
+
+        Response response = authService.login(loginPayload);
+
+        if (response.getStatusCode() == 200) {
+            LoginResponse loginResponse = response.as(LoginResponse.class);
+            String token = loginResponse.getToken();
+
+            if (token != null && !token.isBlank()) {
+                tokenCache.put(username, token);
+                log.info("JWT token successfully generated and cached for user: {}", username);
+                return token;
             }
-            return response.as(LoginResponse.class).getToken();
-        });
+        }
+
+        log.error("Failed to acquire JWT token. Response Status: {}", response.getStatusCode());
+        throw new RuntimeException("JWT token extraction failed. API Status Code: " + response.getStatusCode());
     }
 
+    /**
+     * Clears the cached tokens (useful between test cycles).
+     */
     public static void clearTokenCache() {
-        TOKEN_CACHE.clear();
+        tokenCache.clear();
+        log.info("Token cache cleared.");
     }
 }

@@ -15,18 +15,35 @@ import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 
 public abstract class BaseService {
-    protected static final String BASE_URL = ConfigManager.getBaseUrl();
+
+    protected static final String BASE_URL;
     private static final RequestSpecification BASE_SPEC;
 
     static {
         System.setProperty("log4j.skipJansi", "true");
+        
+        // Ensure non-null BASE_URL resolution
+        String resolvedUrl = ConfigManager.getBaseUrl();
+        BASE_URL = (resolvedUrl != null && !resolvedUrl.isBlank()) ? resolvedUrl : "http://localhost:8089";
+
         BASE_SPEC = new RequestSpecBuilder()
                 .setBaseUri(BASE_URL)
                 .setContentType(ContentType.JSON)
+                .setAccept(ContentType.JSON)
                 .addFilter(new LoggingFilter())
                 .build();
     }
 
+    /**
+     * Default unauthenticated RequestSpecification reusing BASE_SPEC.
+     */
+    protected RequestSpecification getRequestSpec() {
+        return RestAssured.given().spec(BASE_SPEC);
+    }
+
+    /**
+     * Authenticated RequestSpecification injecting Bearer token into headers.
+     */
     protected RequestSpecification getRequestSpec(String token) {
         RequestSpecification spec = RestAssured.given().spec(BASE_SPEC);
         if (token != null && !token.isBlank()) {
