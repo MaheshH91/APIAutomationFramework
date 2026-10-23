@@ -1,28 +1,120 @@
-/target/
-/test-output/
-/logs/
-# Maven build outputs
+==============================================================================
+
+Enterprise REST Assured API Automation Framework - .gitignore
+
+==============================================================================
+
+--------------------------------------------------
+
+Maven Build & Target Directories
+
+--------------------------------------------------
+
 target/
-*.jar
 *.war
 *.ear
+*.nar
+*.jar
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
 
-# Logs
+--------------------------------------------------
+
+Execution Logs & Test Outputs
+
+--------------------------------------------------
+
 logs/
 *.log
+mockoon.log
+test-output/
+surefire-reports/
 
-# IDE files
+--------------------------------------------------
+
+HTML & Visual Test Reports (Local Artifacts)
+
+--------------------------------------------------
+
+extent-reports/
+
+
+--------------------------------------------------
+
+Local Environment Overrides & Secret Properties
+
+--------------------------------------------------
+
+config.local.properties
+*.secret.properties
+.env
+.env.local
+rediffmail.crt
+rediffmail_clean.crt
+
+--------------------------------------------------
+
+IDE & Code Editor Files
+
+--------------------------------------------------
+
+IntelliJ IDEA
+
 .idea/
 *.iml
-.eclipse/
+*.iws
+*.ipr
+out/
+
+Eclipse
+
 .project
 .classpath
 .settings/
+bin/
 
-# Test output directories
-test-output/
-extent-reports/
+Visual Studio Code
 
-# OS metadata
+.vscode/
+*.code-workspace
+
+--------------------------------------------------
+
+Operating System & Temporary Files
+
+--------------------------------------------------
+
+Windows
+
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+macOS
+
 .DS_Store
+.AppleDouble
+.LSOverride
+
+Linux / Vim
+
+*~
+*.swp
+*.swo
+
+--------------------------------------------------
+
+Crash Dumps & Heap Files
+
+--------------------------------------------------
+
+.hprof
+hs_err_pid
+replay_pid*
