@@ -1,0 +1,105 @@
+name: API Test Automation Suite
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '0 18 * * *'  # Runs daily at 11:30 PM IST (18:00 UTC)
+  workflow_dispatch:      # Allows manual trigger with suite parameters
+    inputs:
+      test_suite:
+        description: 'Select TestNG suite profile'
+        required: true
+        default: 'regression'
+        type: choice
+        options:
+          - regression
+          - smoke
+          - security
+      environment:
+        description: 'Target test environment'
+        required: true
+        default: 'qa'
+        type: choice
+        options:
+          - qa
+          - dev
+          - stage
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Install and Start Mockoon CLI
+        run: |
+          npm install -g @mockoon/cli
+          # Start Mockoon pointing to your mock environment file in background
+          mockoon-cli start --data "src/test/resources/mockoon-environment.json" --port 8089 || \
+          mockoon-cli start --data "mockoon-environment.json" --port 8089
+          
+          # Health check polling loop
+          for i in {1..20}; do
+            if curl -s -o /dev/null http://localhost:8089/api/orders; then
+              echo "Mockoon mock server is active and ready on port 8089."
+              break
+            fi
+            echo "Waiting for Mockoon to spin up ($i/20)..."
+            sleep 1
+          done
+
+      - name: Execute Maven Tests
+        run: |
+          SUITE="${{ github.event.inputs.test_suite || 'regression' }}"
+          ENV="${{ github.event.inputs.environment || 'qa' }}"
+          mvn clean test -P${SUITE} -Denv=${ENV}
+
+      - name: Upload Execution Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Execution-Logs
+          path: logs/
+          if-no-files-found: ignore
+
+      - name: Upload Extent Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Extent-Report
+          path: target/extent-reports/
+          if-no-files-found: ignore
+
+      - name: Upload TestNG Emailable Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TestNG-Reports
+          path: target/surefire-reports/emailable-report.html
+          if-no-files-found: ignore
+
+      - name: Publish TestNG Results to Checks Tab
+        if: always()
+        uses: dorny/test-reporter@v3
+        with:
+          name: TestNG Execution Results
+          path: 'target/surefire-reports/testng-results.xml'
+          reporter: java-junit
+          fail-on-error: false
