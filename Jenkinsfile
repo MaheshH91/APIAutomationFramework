@@ -40,8 +40,15 @@ pipeline {
         stage('Pre-clean Mockoon') {
             steps {
                 script {
-                    echo "Ensuring port ${env.MOCK_PORT} is free..."
-                    bat 'mockoon-cli stop --all || exit 0'
+                    echo "Freeing port ${env.MOCK_PORT} from previous runs..."
+                    bat '''
+                    @echo off
+                    for /f "tokens=5" %%a in ('netstat -aon ^| findstr :8089 ^| findstr LISTENING') do (
+                        echo Terminating process %%a on port 8089...
+                        taskkill /F /PID %%a >nul 2>&1
+                    )
+                    exit 0
+                    '''
                 }
             }
         }
@@ -49,7 +56,6 @@ pipeline {
         stage('Start Mock Server') {
             steps {
                 script {
-                    // Check standard file locations in priority order
                     def mockCandidates = [
                         'src/test/resources/mockoon-environment.json',
                         'mockoon-environment.json',
@@ -62,10 +68,12 @@ pipeline {
                         error("No Mockoon environment JSON file found in workspace!")
                     }
 
-                    echo "Starting Mockoon on port ${env.MOCK_PORT} using ${selectedMock}..."
-                    bat "mockoon-cli start --data \"${selectedMock}\" --port %MOCK_PORT% || exit 0"
+                    echo "Starting Mockoon in background on port ${env.MOCK_PORT} using ${selectedMock}..."
+                    
+                    // Run Mockoon asynchronously in the background so it does not block the pipeline
+                    bat "start /B mockoon-cli start --data \"${selectedMock}\" --port %MOCK_PORT% > mockoon.log 2>&1"
 
-                    // Non-interactive polling loop (uses ping instead of timeout to avoid redirection errors)
+                    // Non-interactive health check polling
                     bat '''
                     @echo off
                     set COUNT=0
@@ -75,12 +83,13 @@ pipeline {
                     set /a COUNT+=1
                     if %COUNT% GEQ 20 (
                         echo Mockoon server failed to bind and respond within 20 seconds.
+                        type mockoon.log
                         exit 1
                     )
                     ping 127.0.0.1 -n 2 >nul
                     goto poll
                     :ready
-                    echo Mockoon mock server is fully operational.
+                    echo Mockoon mock server is active and responding on port 8089.
                     '''
                 }
             }
@@ -105,8 +114,14 @@ pipeline {
     post {
         always {
             script {
-                echo "Terminating running Mockoon instances..."
-                bat 'mockoon-cli stop --all || exit 0'
+                echo "Terminating Mockoon on port ${env.MOCK_PORT}..."
+                bat '''
+                @echo off
+                for /f "tokens=5" %%a in ('netstat -aon ^| findstr :8089 ^| findstr LISTENING') do (
+                    taskkill /F /PID %%a >nul 2>&1
+                )
+                exit 0
+                '''
             }
 
             // 1. Publish standard TestNG / Surefire XML results
