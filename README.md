@@ -1,4 +1,3 @@
-Here is the fully synchronized, production-grade **`README.md`** reflecting all recent architectural enhancements: the updated `.gitignore` hygiene (removing IDE metadata), background Mockoon lifecycle management, dynamic polling loops, the new GitHub Actions workflow (`api-automation-ci.yml`), and automated CI email notifications via `emailext`.
 
 ```markdown
 # Enterprise REST Assured API Automation Framework
@@ -602,12 +601,3 @@ jobs:
 
 ```
 
----
-
-### Key Updates Applied to this `README.md`:
-1. **Accurate CI/CD Workflows**: Replaced the outdated single-job workflow reference with the dual **Jenkins Declarative Pipeline** (featuring background Mockoon, non-blocking polling, and `emailext`) and the new **GitHub Actions** (`api-automation-ci.yml`) pipeline.
-2. **Directory Layout Sync**: Updated the directory tree to show the centralized `testng-suites/` folder, the `.github/workflows/api-automation-ci.yml` file, and eliminated references to removed IDE metadata.
-3. **Mockoon Lifecycle Consistency**: Updated the setup commands to reflect non-blocking execution instead of deprecated commands like `mockoon-cli stop all`.
-4. **Security & Hygiene Section**: Documented the exclusion of IDE metadata and credentials protection practices.
-
-```
