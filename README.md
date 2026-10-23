@@ -1,12 +1,16 @@
+Here is the fully synchronized, production-grade **`README.md`** reflecting all recent architectural enhancements: the updated `.gitignore` hygiene (removing IDE metadata), background Mockoon lifecycle management, dynamic polling loops, the new GitHub Actions workflow (`api-automation-ci.yml`), and automated CI email notifications via `emailext`.
+
+```markdown
 # Enterprise REST Assured API Automation Framework
 
 [![Java 21](https://img.shields.io/badge/Java-21-orange.svg)](https://www.oracle.com/java/technologies/downloads/#java21)
 [![REST Assured](https://img.shields.io/badge/REST%20Assured-5.5.0-green.svg)](https://rest-assured.io/)
 [![TestNG](https://img.shields.io/badge/TestNG-7.10.2-red.svg)](https://testng.org/)
 [![ExtentReports](https://img.shields.io/badge/ExtentReports-5.1.2-blue.svg)](https://www.extentreports.com/)
-[![CI/CD](https://img.shields.io/badge/Jenkins-Pipeline%20Ready-brightgreen.svg)](https://www.jenkins.io/)
+[![Jenkins CI](https://img.shields.io/badge/Jenkins-Pipeline%20Ready-brightgreen.svg)](https://www.jenkins.io/)
+[![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD%20Automated-blue.svg)](https://github.com/features/actions)
 
-A thread-safe, modular, enterprise-grade REST API test automation framework built with **Java 21**, **REST Assured**, **TestNG**, and **Maven**. Designed with a clean separation of concerns, featuring dynamic Maven profile execution (`smoke`, `security`, `regression`), stateful multi-step API chaining workflows, Mockoon API virtualization, thread-safe token caching and reporting, unified logging with **Log4j2**, automated test retry mechanisms, and dual reporting via **ExtentReports 5** and **TestNG Emailable Reports**.
+A thread-safe, modular, enterprise-grade REST API test automation framework built with **Java 21**, **REST Assured**, **TestNG**, and **Maven**. Designed with a clean separation of concerns, featuring dynamic Maven profile execution (`smoke`, `security`, `regression`), stateful multi-step API chaining workflows, Mockoon API virtualization, thread-safe token caching and reporting, unified logging with **Log4j2**, automated test retry mechanisms, dual reporting via **ExtentReports 5** and **TestNG Emailable Reports**, and automated CI email notifications with report attachments.
 
 ---
 
@@ -19,19 +23,22 @@ A thread-safe, modular, enterprise-grade REST API test automation framework buil
 - [Authentication & Security Coverage](#-authentication--security-coverage)
 - [Reporting & Logging](#-reporting--logging)
 - [Getting Started & Local Execution](#-getting-started--local-execution)
-- [CI/CD Jenkins Parameterized Pipeline](#-cicd-jenkins-parameterized-pipeline)
+- [CI/CD Parameterized Pipelines](#-cicd-parameterized-pipelines)
+  - [Jenkins Declarative Pipeline](#jenkins-declarative-pipeline)
+  - [GitHub Actions Workflow](#github-actions-workflow)
+- [Version Control & Secrets Hygiene](#-version-control--secrets-hygiene)
 
 ---
 
 ## 🏛 Architecture & Design Principles
 
-* **Layered Architecture (`src/main/java` vs. `src/test/java`)**: Framework engines, service clients, request/response models, and utilities reside exclusively in `src/main/java`. Test suites, assertions, and execution listeners reside under `src/test/java`.
-* **Stateful API Chaining**: Supports multi-stage test journeys where downstream steps dynamically consume context, identifiers, or tokens extracted from previous requests (via TestNG `dependsOnMethods` and `ITestContext`).
-* **Dynamic Suite Execution via Maven Profiles**: Property interpolation (`${suiteXmlFile}`) configured in `pom.xml` allows seamless switching across Smoke, Security, and Regression suites without redundant plugin declarations.
-* **Thread-Safe State & Token Management**: `TokenManager` utilizes a thread-safe `ConcurrentHashMap` cache to manage user JWT tokens during concurrent executions without race conditions, backed by a global `clearCache()` teardown hook.
-* **Thread-Safe Dashboard Reporting**: `ExtentTestManager` leverages `ThreadLocal<ExtentTest>` to isolate test metrics across parallel execution threads.
-* **Automatic Failure Recovery**: Integrated `AnnotationTransformer` paired with `RetryAnalyzer` automatically re-executes transient test failures up to configured thresholds.
-* **Mock Server Virtualization**: Self-contained local simulation using **Mockoon CLI** on port `8089` supporting strict header-based auth rules and 401 fallback mechanisms.
+- **Layered Architecture (`src/main/java` vs. `src/test/java`)**: Framework engines, service clients, request/response models, and utilities reside exclusively in `src/main/java`. Test suites, assertions, and execution listeners reside under `src/test/java`.
+- **Stateful API Chaining**: Supports multi-stage test journeys where downstream steps dynamically consume context, identifiers, or tokens extracted from previous requests (via TestNG `dependsOnMethods` and `ITestContext`).
+- **Dynamic Suite Execution via Maven Profiles**: Property interpolation (`${suiteXmlFile}`) configured in `pom.xml` allows seamless switching across Smoke, Security, and Regression suites without redundant plugin declarations.
+- **Thread-Safe State & Token Management**: `TokenManager` utilizes a thread-safe `ConcurrentHashMap` cache to manage user JWT tokens during concurrent executions without race conditions, backed by a global `clearCache()` teardown hook.
+- **Thread-Safe Dashboard Reporting**: `ExtentTestManager` leverages `ThreadLocal<ExtentTest>` to isolate test metrics across parallel execution threads.
+- **Automatic Failure Recovery**: Integrated `AnnotationTransformer` paired with `RetryAnalyzer` automatically re-executes transient test failures up to configured thresholds.
+- **Mock Server Virtualization**: Self-contained local and CI simulation using **Mockoon CLI** on port `8089` supporting background lifecycle management, dynamic file path detection, and resilient polling mechanisms.
 
 ---
 
@@ -39,10 +46,13 @@ A thread-safe, modular, enterprise-grade REST API test automation framework buil
 
 ```text
 APIAutomationFramework/
-├── Jenkinsfile                          # Parameterized Jenkins declarative pipeline
+├── .github/
+│   └── workflows/
+│       └── api-automation-ci.yml        # GitHub Actions CI workflow (Manual & Scheduled)
+├── Jenkinsfile                          # Enterprise Jenkins pipeline with email notifications
 ├── pom.xml                              # Maven build file with dynamic profiles
-├── mockoon-environment.json             # Mockoon API mock configuration (root)
-├── README.md                            # Framework documentation
+├── mockoon-environment.json             # Mockoon API mock configuration (root fallback)
+├── README.md                            # Comprehensive framework documentation
 ├── testng-suites/                       # Centralized TestNG XML suites directory
 │   ├── testng-regression.xml            # Master full regression suite (Default)
 │   ├── testng-smoke.xml                 # Core smoke verification suite
@@ -107,12 +117,13 @@ APIAutomationFramework/
         │       └── utils/
         │           └── TestDataProvider.java       # Parallel and method-aware DataProviders
         └── resources/
-            ├── API Automation Mock.json            # Mockoon environment definition
-            ├── config.properties                   # Dynamic environment endpoints & credentials
+            ├── API Automation Mock.json            # Mockoon environment definition backup
+            ├── config.properties                   # Base configuration endpoints & credentials
             ├── log4j2.xml                          # Console and rolling file logging configuration
-            ├── mockoon-environment.json            # Consolidated mock environment definition
+            ├── mockoon-environment.json            # Primary Mockoon environment definition
             └── schemas/
                 └── order-schema.json               # JSON Schema definition for contract testing
+
 ```
 
 ---
@@ -121,15 +132,16 @@ APIAutomationFramework/
 
 | Tool / Library | Version | Usage |
 | --- | --- | --- |
-| **Java** | 21 (LTS) | Language runtime |
+| **Java** | 21 (LTS) | Modern language runtime |
 | **REST Assured** | 5.5.0 | REST API client DSL and assertions |
 | **TestNG** | 7.10.2 | Test runner, lifecycle assertions, and concurrency |
-| **Jackson Databind** | 2.18.2 | JSON serialization and deserialization |
+| **Jackson Databind** | 2.18.2 | JSON serialization and POJO mapping |
 | **ExtentReports** | 5.1.2 | Interactive dark-mode dashboard reporting |
 | **Log4j2 & SLF4J Bridge** | 2.24.1 / 2.0.16 | Unified console and file logging (`log4j-slf4j2-impl`) |
 | **JSON Schema Validator** | 5.5.0 | Contract validation against Draft-04 JSON schemas |
-| **Mockoon CLI** | Latest | Local REST API virtualization engine (Port 8089) |
-| **Jenkins** | 2.x | Continuous integration and parameterized execution |
+| **Mockoon CLI** | Latest | Local and CI mock virtualization engine (Port 8089) |
+| **Jenkins** | 2.x | Distributed pipeline execution with `emailext` reporting |
+| **GitHub Actions** | Latest | Containerized CI/CD workflow with artifact archiving |
 
 ---
 
@@ -139,7 +151,7 @@ The framework provides targeted XML suite descriptors triggered through Maven pr
 
 | Profile ID | Target Suite XML | Focus Area | Command |
 | --- | --- | --- | --- |
-| **`regression`** *(Default)* | `testng-regression.xml` | Comprehensive execution across all functional, security, concurrency, and API chaining suites (49+ tests). | `mvn test` or `mvn test -Pregression` |
+| **`regression`** *(Default)* | `testng-regression.xml` | Comprehensive execution across all functional, security, concurrency, and API chaining suites. | `mvn test` or `mvn test -Pregression` |
 | **`smoke`** | `testng-smoke.xml` | Fast feedback on core authentication, onboarding, and essential profile access. | `mvn test -Psmoke` |
 | **`security`** | `testng-security.xml` | Authorization mechanisms, negative authentication handling, and token manipulation. | `mvn test -Psecurity` |
 
@@ -150,7 +162,9 @@ The framework provides targeted XML suite descriptors triggered through Maven pr
 The framework demonstrates enterprise-grade state propagation across several patterns:
 
 ### 1. Order Lifecycle Chain (`OrderFulfillmentChainTest`)
+
 Executes an end-to-end business transaction where each step depends on the previous step's output:
+
 ```text
 [GET Catalog Items]
        ↓ (Extract Target Item)
@@ -162,20 +176,25 @@ Executes an end-to-end business transaction where each step depends on the previ
        ↓ (Transition Status to SHIPPED)
 [DELETE /api/orders/101]
        ↓ (Teardown & Verification)
+
 ```
 
 ### 2. OAuth2 Token Exchange Chain (`OAuth2TokenExchangeChainTest`)
+
 * **Step 1:** Dispatches client credentials to `/api/oauth/token` and extracts `access_token` and `token_type`.
 * **Step 2:** Formats the token as a dynamic Bearer authorization header and consumes the downstream resource `/api/secure/oauth-resource`.
 
 ### 3. Suite Context Chaining (`ContextChainingTest`)
+
 Demonstrates suite-wide, thread-safe variable exchange using TestNG's `ITestContext`:
+
 ```java
 // Producer Step: Injects generated test state into the suite context
 context.setAttribute("CHAINED_USER", generatedUser);
 
 // Consumer Step: Retrieves context state across separate test methods
 String targetUser = (String) context.getAttribute("CHAINED_USER");
+
 ```
 
 ---
@@ -220,48 +239,62 @@ Automated validation across all industry-standard schemes via `SecurityAuthServi
 Start Mockoon pointing to the mock environment on port `8089`:
 
 ```bash
-mockoon-cli stop all
 mockoon-cli start --data "src/test/resources/mockoon-environment.json" --port 8089
+
 ```
 
 Verify mock status via terminal:
+
 ```bash
-curl -X POST http://localhost:8089/api/orders -H "Content-Type: application/json" -d "{\"item\":\"Laptop\"}"
+curl -s -o nul http://localhost:8089/api/orders
+
 ```
 
 ### 2. Compile Framework Dependencies
 
 ```bash
 mvn clean compile test-compile
+
 ```
 
 ### 3. Run by Profile
 
 * **Execute Smoke Tests**:
-  ```bash
-  mvn test -Psmoke
-  ```
+```bash
+mvn test -Psmoke
+
+```
+
 
 * **Execute Security Tests**:
-  ```bash
-  mvn test -Psecurity
-  ```
+```bash
+mvn test -Psecurity
+
+```
+
 
 * **Execute Full Regression Suite**:
-  ```bash
-  mvn test -Pregression
-  ```
+```bash
+mvn test -Pregression
+
+```
+
 
 * **Execute with Environment Parameter**:
-  ```bash
-  mvn test -Pregression -Denv=qa
-  ```
+```bash
+mvn test -Pregression -Denv=qa
+
+```
+
+
 
 ---
 
-## 🔄 CI/CD Jenkins Parameterized Pipeline
+## 🔄 CI/CD Parameterized Pipelines
 
-The declarative `Jenkinsfile` includes pre-clean stages, health-check polling loops, and multi-parameter execution:
+### Jenkins Declarative Pipeline
+
+The declarative `Jenkinsfile` runs on Windows agents, managing the Mockoon server in the background using `start /B` and terminating instances via `taskkill`. Test results and HTML dashboards are archived and emailed automatically:
 
 ```groovy
 pipeline {
@@ -271,12 +304,17 @@ pipeline {
         choice(
             name: 'TEST_SUITE',
             choices: ['regression', 'smoke', 'security'],
-            description: 'Select the TestNG suite profile to execute via Maven'
+            description: 'Select TestNG profile (maps to testng-suites/testng-*.xml)'
         )
         choice(
             name: 'ENVIRONMENT',
             choices: ['qa', 'dev', 'stage'],
             description: 'Target test execution environment'
+        )
+        string(
+            name: 'RECIPIENTS',
+            defaultValue: 'qa-reports@company.local',
+            description: 'Recipient email address for test results'
         )
     }
 
@@ -286,7 +324,6 @@ pipeline {
     }
 
     environment {
-        MOCK_FILE = 'src/test/resources/mockoon-environment.json'
         MOCK_PORT = '8089'
     }
 
@@ -306,17 +343,39 @@ pipeline {
 
         stage('Pre-clean Mockoon') {
             steps {
-                bat 'mockoon-cli stop all || exit 0'
+                script {
+                    echo "Freeing port ${env.MOCK_PORT} from previous runs..."
+                    bat '''
+                    @echo off
+                    for /f "tokens=5" %%a in ('netstat -aon ^| findstr :8089 ^| findstr LISTENING') do (
+                        echo Terminating process %%a on port 8089...
+                        taskkill /F /PID %%a >nul 2>&1
+                    )
+                    exit 0
+                    '''
+                }
             }
         }
 
         stage('Start Mock Server') {
             steps {
                 script {
-                    echo "Starting Mockoon on port ${env.MOCK_PORT}..."
-                    bat "mockoon-cli start --data \"%MOCK_FILE%\" --port %MOCK_PORT% || exit 0"
+                    def mockCandidates = [
+                        'src/test/resources/mockoon-environment.json',
+                        'mockoon-environment.json',
+                        'src/test/resources/API Automation Mock.json'
+                    ]
 
-                    // Health check polling loop
+                    def selectedMock = mockCandidates.find { fileExists(it) }
+
+                    if (!selectedMock) {
+                        error("No Mockoon environment JSON file found in workspace!")
+                    }
+
+                    echo "Starting Mockoon in background on port ${env.MOCK_PORT} using${selectedMock}..."
+                    bat "start /B mockoon-cli start --data \"${selectedMock}\" --port %MOCK_PORT% > mockoon.log 2>&1"
+
+                    // Non-interactive polling loop
                     bat '''
                     @echo off
                     set COUNT=0
@@ -324,14 +383,15 @@ pipeline {
                     curl -s -o nul http://localhost:8089/api/orders
                     if %ERRORLEVEL% EQU 0 goto ready
                     set /a COUNT+=1
-                    if %COUNT% GEQ 15 (
-                        echo Mockoon server failed to start within 15 seconds.
+                    if %COUNT% GEQ 20 (
+                        echo Mockoon server failed to bind and respond within 20 seconds.
+                        type mockoon.log
                         exit 1
                     )
-                    timeout /t 1 /nobreak >nul
+                    ping 127.0.0.1 -n 2 >nul
                     goto poll
                     :ready
-                    echo Mockoon mock server is fully operational.
+                    echo Mockoon mock server is active and responding on port 8089.
                     '''
                 }
             }
@@ -345,15 +405,29 @@ pipeline {
 
         stage('Run API Test Suite') {
             steps {
-                bat "mvn test -P${params.TEST_SUITE} -Denv=${params.ENVIRONMENT}"
+                script {
+                    echo "Running TestNG Profile: ${params.TEST_SUITE} \vert{} Target Env:${params.ENVIRONMENT}"
+                    bat "mvn test -P${params.TEST_SUITE} -Denv=${params.ENVIRONMENT}"
+                }
             }
         }
     }
 
     post {
         always {
-            bat 'mockoon-cli stop all || exit 0'
+            script {
+                echo "Terminating Mockoon on port ${env.MOCK_PORT}..."
+                bat '''
+                @echo off
+                for /f "tokens=5" %%a in ('netstat -aon ^| findstr :8089 ^| findstr LISTENING') do (
+                    taskkill /F /PID %%a >nul 2>&1
+                )
+                exit 0
+                '''
+            }
+
             junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+
             publishHTML([
                 allowMissing: true,
                 alwaysLinkToLastBuild: true,
@@ -363,6 +437,7 @@ pipeline {
                 reportName: 'TestNG Emailable Report',
                 reportTitles: 'TestNG Execution Report'
             ])
+
             publishHTML([
                 allowMissing: true,
                 alwaysLinkToLastBuild: true,
@@ -372,7 +447,28 @@ pipeline {
                 reportName: 'Extent Report',
                 reportTitles: 'Enterprise API Test Automation Report'
             ])
+
             archiveArtifacts artifacts: 'target/surefire-reports/**, target/extent-reports/**', allowEmptyArchive: true
+
+            // Send automated status email with report links and attachments
+            script {
+                if (params.RECIPIENTS && params.RECIPIENTS != 'qa-reports@company.local') {
+                    emailext (
+                        to: "${params.RECIPIENTS}",
+                        subject: "[Jenkins] ${currentBuild.currentResult ?: 'SUCCESS'}: API Suite '${params.TEST_SUITE}' (Build #${env.BUILD_NUMBER})",
+                        body: """
+                            <h2>Execution Status: ${currentBuild.currentResult ?: 'SUCCESS'}</h2>
+                            <p><b>Job:</b> ${env.JOB_NAME} \vert{} <b>Build:</b> #${env.BUILD_NUMBER}</p>
+                            <p><b>Suite:</b> ${params.TEST_SUITE} \vert{} <b>Env:</b>${params.ENVIRONMENT}</p>
+                            <p><a href="${env.BUILD_URL}Extent_20Report/">View Extent Reports Dashboard</a></p>
+                            <p><a href="${env.BUILD_URL}TestNG_20Emailable_20Report/">View TestNG Report</a></p>
+                        """,
+                        mimeType: 'text/html',
+                        attachmentsPattern: 'target/extent-reports/extentReport.html, target/surefire-reports/emailable-report.html',
+                        recipientProviders: [requestor()]
+                    )
+                }
+            }
         }
         success {
             echo "All tests executed and passed under profile: '${params.TEST_SUITE}'"
@@ -382,4 +478,136 @@ pipeline {
         }
     }
 }
+
+```
+
+---
+
+### GitHub Actions Workflow
+
+Configured at `.github/workflows/api-automation-ci.yml` for automated CI triggers on push/PR, nightly schedules, and manual workflow dispatches:
+
+```yaml
+name: API Test Automation Suite
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '0 18 * * *'  # Runs daily at 11:30 PM IST (18:00 UTC)
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Select TestNG suite profile'
+        required: true
+        default: 'regression'
+        type: choice
+        options:
+          - regression
+          - smoke
+          - security
+      environment:
+        description: 'Target test environment'
+        required: true
+        default: 'qa'
+        type: choice
+        options:
+          - qa
+          - dev
+          - stage
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Install and Start Mockoon CLI
+        run: |
+          npm install -g @mockoon/cli
+          mockoon-cli start --data "src/test/resources/mockoon-environment.json" --port 8089 || \
+          mockoon-cli start --data "mockoon-environment.json" --port 8089
+          
+          for i in {1..20}; do
+            if curl -s -o /dev/null http://localhost:8089/api/orders; then
+              echo "Mockoon mock server is active and ready on port 8089."
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Execute Maven Tests
+        run: |
+          SUITE="${{ github.event.inputs.test_suite || 'regression' }}"
+          ENV="${{ github.event.inputs.environment || 'qa' }}"
+          mvn clean test -P${SUITE} -Denv=${ENV}
+
+      - name: Upload Execution Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Execution-Logs
+          path: logs/
+          if-no-files-found: ignore
+
+      - name: Upload Extent Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Extent-Report
+          path: target/extent-reports/
+          if-no-files-found: ignore
+
+      - name: Upload TestNG Emailable Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TestNG-Reports
+          path: target/surefire-reports/emailable-report.html
+          if-no-files-found: ignore
+
+      - name: Publish TestNG Results to Checks Tab
+        if: always()
+        uses: dorny/test-reporter@v3
+        with:
+          name: TestNG Execution Results
+          path: 'target/surefire-reports/testng-results.xml'
+          reporter: java-junit
+          fail-on-error: false
+
+```
+
+---
+
+## 🔒 Version Control & Secrets Hygiene
+
+* **Untracked IDE Artifacts**: `.gitignore` strictly excludes IDE workspace metadata (`.vscode/`, `.settings/`, `.project`, `.classpath`) and local logs (`mockoon.log`, `logs/`).
+* **Decoupled Credentials**: Sensitive SMTP and environment credentials are not committed to Git. They are managed through Jenkins Global Credentials and parameterized overrides (`config.local.properties`).
+
+```
+
+---
+
+### Key Updates Applied to this `README.md`:
+1. **Accurate CI/CD Workflows**: Replaced the outdated single-job workflow reference with the dual **Jenkins Declarative Pipeline** (featuring background Mockoon, non-blocking polling, and `emailext`) and the new **GitHub Actions** (`api-automation-ci.yml`) pipeline.
+2. **Directory Layout Sync**: Updated the directory tree to show the centralized `testng-suites/` folder, the `.github/workflows/api-automation-ci.yml` file, and eliminated references to removed IDE metadata.
+3. **Mockoon Lifecycle Consistency**: Updated the setup commands to reflect non-blocking execution instead of deprecated commands like `mockoon-cli stop all`.
+4. **Security & Hygiene Section**: Documented the exclusion of IDE metadata and credentials protection practices.
+
 ```
