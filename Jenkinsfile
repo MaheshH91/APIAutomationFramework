@@ -20,7 +20,6 @@ pipeline {
     }
 
     environment {
-        MOCK_FILE = 'src/test/resources/mockoon-environment.json'
         MOCK_PORT = '8089'
     }
 
@@ -41,8 +40,8 @@ pipeline {
         stage('Pre-clean Mockoon') {
             steps {
                 script {
-                    echo "Ensuring port ${env.MOCK_PORT} is free from previous runs..."
-                    bat 'mockoon-cli stop all || exit 0'
+                    echo "Ensuring port ${env.MOCK_PORT} is free..."
+                    bat 'mockoon-cli stop --all || exit 0'
                 }
             }
         }
@@ -50,10 +49,23 @@ pipeline {
         stage('Start Mock Server') {
             steps {
                 script {
-                    echo "Starting Mockoon on port ${env.MOCK_PORT} using ${env.MOCK_FILE}..."
-                    bat "mockoon-cli start --data \"%MOCK_FILE%\" --port %MOCK_PORT% || exit 0"
+                    // Check standard file locations in priority order
+                    def mockCandidates = [
+                        'src/test/resources/mockoon-environment.json',
+                        'mockoon-environment.json',
+                        'src/test/resources/API Automation Mock.json'
+                    ]
 
-                    // Dynamic polling loop to ensure server is responding before launching tests
+                    def selectedMock = mockCandidates.find { fileExists(it) }
+
+                    if (!selectedMock) {
+                        error("No Mockoon environment JSON file found in workspace!")
+                    }
+
+                    echo "Starting Mockoon on port ${env.MOCK_PORT} using ${selectedMock}..."
+                    bat "mockoon-cli start --data \"${selectedMock}\" --port %MOCK_PORT% || exit 0"
+
+                    // Non-interactive polling loop (uses ping instead of timeout to avoid redirection errors)
                     bat '''
                     @echo off
                     set COUNT=0
@@ -61,11 +73,11 @@ pipeline {
                     curl -s -o nul http://localhost:8089/api/orders
                     if %ERRORLEVEL% EQU 0 goto ready
                     set /a COUNT+=1
-                    if %COUNT% GEQ 15 (
-                        echo Mockoon server failed to start within 15 seconds.
+                    if %COUNT% GEQ 20 (
+                        echo Mockoon server failed to bind and respond within 20 seconds.
                         exit 1
                     )
-                    timeout /t 1 /nobreak >nul
+                    ping 127.0.0.1 -n 2 >nul
                     goto poll
                     :ready
                     echo Mockoon mock server is fully operational.
@@ -94,7 +106,7 @@ pipeline {
         always {
             script {
                 echo "Terminating running Mockoon instances..."
-                bat 'mockoon-cli stop all || exit 0'
+                bat 'mockoon-cli stop --all || exit 0'
             }
 
             // 1. Publish standard TestNG / Surefire XML results
