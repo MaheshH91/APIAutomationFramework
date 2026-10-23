@@ -59,4 +59,9 @@ public abstract class BaseTest {
     public void afterSuiteTeardown() {
         TokenManager.clearTokenCache();
     }
+    @AfterSuite(alwaysRun = true)
+    public void globalSuiteTeardown() {
+        RestAssured.reset();
+        TokenManager.clearCache();
+    }
 }

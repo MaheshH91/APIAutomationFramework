@@ -9,7 +9,7 @@
         <listener class-name="com.api.listeners.AnnotationTransformer" />
     </listeners>
 
-    <test name="Smoke - Core Authentication &amp; User Flow">
+    <test name="Smoke - Core Authentication and User Flow">
         <classes>
             <class name="com.api.tests.LoginTest" />
             <class name="com.api.tests.AccountCreationTest" />

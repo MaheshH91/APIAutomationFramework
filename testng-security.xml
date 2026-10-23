@@ -9,7 +9,7 @@
         <listener class-name="com.api.listeners.AnnotationTransformer" />
     </listeners>
 
-    <test name="Security - Token &amp; Authentication Mechanisms">
+    <test name="Security - Token and Authentication Mechanisms">
         <classes>
             <class name="com.api.tests.AuthorizationMechanismsTest" />
             <class name="com.api.tests.UserProfileSecurityTest" />
