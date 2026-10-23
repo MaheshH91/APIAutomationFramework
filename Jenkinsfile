@@ -151,6 +151,29 @@ pipeline {
 
             // 4. Archive HTML reports and test artifacts
             archiveArtifacts artifacts: 'target/surefire-reports/**, target/extent-reports/**', allowEmptyArchive: true
+
+
+// Send Email Notification
+            emailext (
+                to: 'holkarmahesh@outlook.com',
+                subject: "[Jenkins] ${currentBuild.currentResult}: Job '${env.JOB_NAME}' (Build #${env.BUILD_NUMBER})",
+                body: """
+                    <h2>Build Status: ${currentBuild.currentResult}</h2>
+                    <p><b>Job:</b> ${env.JOB_NAME}</p>
+                    <p><b>Build Number:</b> #${env.BUILD_NUMBER}</p>
+                    <p><b>Test Profile:</b> ${params.TEST_SUITE}</p>
+                    <p><b>Environment:</b> ${params.ENVIRONMENT}</p>
+                    <p><b>Console Log:</b> <a href="${env.BUILD_URL}console">${env.BUILD_URL}console</a></p>
+                    <p><b>Extent Report:</b> <a href="${env.BUILD_URL}Extent_20Report/">View Extent Dashboard</a></p>
+                    <p><b>TestNG Report:</b> <a href="${env.BUILD_URL}TestNG_20Emailable_20Report/">View TestNG Report</a></p>
+                """,
+                mimeType: 'text/html',
+                attachmentsPattern: 'target/extent-reports/extentReport.html, target/surefire-reports/emailable-report.html',
+                recipientProviders: [developers(), requestor()]
+            )
+
+
+
         }
         success {
             echo "All tests executed and passed under profile: '${params.TEST_SUITE}'"
