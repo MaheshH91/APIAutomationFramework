@@ -10,7 +10,7 @@ pipeline {
         choice(
             name: 'ENVIRONMENT',
             choices: ['qa', 'dev', 'stage'],
-            description: 'Target test environment'
+            description: 'Target test execution environment'
         )
     }
 
@@ -20,6 +20,7 @@ pipeline {
     }
 
     environment {
+        MOCK_FILE = 'src/test/resources/mockoon-environment.json'
         MOCK_PORT = '8089'
     }
 
@@ -40,7 +41,7 @@ pipeline {
         stage('Pre-clean Mockoon') {
             steps {
                 script {
-                    echo "Ensuring no orphaned Mockoon processes occupy port ${env.MOCK_PORT}..."
+                    echo "Ensuring port ${env.MOCK_PORT} is free from previous runs..."
                     bat 'mockoon-cli stop all || exit 0'
                 }
             }
@@ -49,24 +50,26 @@ pipeline {
         stage('Start Mock Server') {
             steps {
                 script {
-                    // Check all standard mock file locations in order of priority
-                    def mockCandidates = [
-                        'mockoon-environment.json',
-                        'src/test/resources/mockoon-environment.json',
-                        'src/test/resources/API Automation Mock.json'
-                    ]
+                    echo "Starting Mockoon on port ${env.MOCK_PORT} using ${env.MOCK_FILE}..."
+                    bat "mockoon-cli start --data \"%MOCK_FILE%\" --port %MOCK_PORT% || exit 0"
 
-                    def selectedMock = mockCandidates.find { fileExists(it) }
-
-                    if (selectedMock) {
-                        echo "Starting Mockoon server on port ${env.MOCK_PORT} using data file: ${selectedMock}"
-                        bat "mockoon-cli start --data \"${selectedMock}\" --port %MOCK_PORT% || exit 0"
-                        
-                        // Brief pause to allow the port binding to settle
-                        sleep(time: 2, unit: 'SECONDS')
-                    } else {
-                        echo "Warning: No Mockoon environment JSON file found. Assuming an external mock server or standalone service is active."
-                    }
+                    // Dynamic polling loop to ensure server is responding before launching tests
+                    bat '''
+                    @echo off
+                    set COUNT=0
+                    :poll
+                    curl -s -o nul http://localhost:8089/api/orders
+                    if %ERRORLEVEL% EQU 0 goto ready
+                    set /a COUNT+=1
+                    if %COUNT% GEQ 15 (
+                        echo Mockoon server failed to start within 15 seconds.
+                        exit 1
+                    )
+                    timeout /t 1 /nobreak >nul
+                    goto poll
+                    :ready
+                    echo Mockoon mock server is fully operational.
+                    '''
                 }
             }
         }
@@ -80,7 +83,7 @@ pipeline {
         stage('Run API Test Suite') {
             steps {
                 script {
-                    echo "Executing API Test Suite | Profile: ${params.TEST_SUITE} | Env: ${params.ENVIRONMENT}"
+                    echo "Running TestNG Profile: ${params.TEST_SUITE} | Target Env: ${params.ENVIRONMENT}"
                     bat "mvn test -P${params.TEST_SUITE} -Denv=${params.ENVIRONMENT}"
                 }
             }
@@ -90,14 +93,14 @@ pipeline {
     post {
         always {
             script {
-                echo "Terminating Mockoon instances..."
+                echo "Terminating running Mockoon instances..."
                 bat 'mockoon-cli stop all || exit 0'
             }
 
-            // 1. Process Surefire TestNG XML test results
+            // 1. Publish standard TestNG / Surefire XML results
             junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
 
-            // 2. Publish TestNG Emailable HTML Report
+            // 2. Publish native TestNG emailable HTML report
             publishHTML([
                 allowMissing: true,
                 alwaysLinkToLastBuild: true,
@@ -119,14 +122,14 @@ pipeline {
                 reportTitles: 'Enterprise API Test Automation Report'
             ])
 
-            // 4. Archive HTML reports and XML artifacts
+            // 4. Archive HTML reports and test artifacts
             archiveArtifacts artifacts: 'target/surefire-reports/**, target/extent-reports/**', allowEmptyArchive: true
         }
         success {
-            echo "All tests executed successfully under the '${params.TEST_SUITE}' profile!"
+            echo "All tests executed and passed under profile: '${params.TEST_SUITE}'"
         }
         failure {
-            echo "Pipeline failed. Review console logs, TestNG reports, or ExtentReport dashboard."
+            echo "Build failed. Inspect ExtentReport, TestNG reports, or console logs for details."
         }
     }
 }
