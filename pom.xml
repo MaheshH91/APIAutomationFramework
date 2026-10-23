@@ -18,7 +18,7 @@
 		<log4j.version>2.24.1</log4j.version>
 		<slf4j.version>2.0.16</slf4j.version>
 		<extentreports.version>5.1.2</extentreports.version>
-		<suiteXmlFile>testng-regression.xml</suiteXmlFile>
+		<suiteXmlFile>testng-suites/testng-regression.xml</suiteXmlFile>
 	</properties>
 
 	<dependencies>
@@ -93,30 +93,27 @@
 	</dependencies>
 
 	<profiles>
-		<!-- Default: Regression Suite -->
 		<profile>
 			<id>regression</id>
 			<activation>
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<properties>
-				<suiteXmlFile>testng-regression.xml</suiteXmlFile>
+				<suiteXmlFile>testng-suites/testng-regression.xml</suiteXmlFile>
 			</properties>
 		</profile>
 
-		<!-- Smoke Suite -->
 		<profile>
 			<id>smoke</id>
 			<properties>
-				<suiteXmlFile>testng-smoke.xml</suiteXmlFile>
+				<suiteXmlFile>testng-suites/testng-smoke.xml</suiteXmlFile>
 			</properties>
 		</profile>
 
-		<!-- Security and Authorization Suite -->
 		<profile>
 			<id>security</id>
 			<properties>
-				<suiteXmlFile>testng-security.xml</suiteXmlFile>
+				<suiteXmlFile>testng-suites/testng-security.xml</suiteXmlFile>
 			</properties>
 		</profile>
 	</profiles>

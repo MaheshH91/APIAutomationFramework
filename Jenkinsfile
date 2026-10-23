@@ -5,7 +5,7 @@ pipeline {
         choice(
             name: 'TEST_SUITE',
             choices: ['regression', 'smoke', 'security'],
-            description: 'Select the TestNG suite profile to execute via Maven'
+            description: 'Select the TestNG profile (maps to testng-suites/testng-*.xml)'
         )
         choice(
             name: 'ENVIRONMENT',

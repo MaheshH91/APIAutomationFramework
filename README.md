@@ -41,11 +41,12 @@ A thread-safe, modular, enterprise-grade REST API test automation framework buil
 APIAutomationFramework/
 ├── Jenkinsfile                          # Parameterized Jenkins declarative pipeline
 ├── pom.xml                              # Maven build file with dynamic profiles
-├── testng-regression.xml                # Master full regression suite (Default)
-├── testng-smoke.xml                     # Core smoke verification suite
-├── testng-security.xml                  # Authorization and security test suite
 ├── mockoon-environment.json             # Mockoon API mock configuration (root)
 ├── README.md                            # Framework documentation
+├── testng-suites/                       # Centralized TestNG XML suites directory
+│   ├── testng-regression.xml            # Master full regression suite (Default)
+│   ├── testng-smoke.xml                 # Core smoke verification suite
+│   └── testng-security.xml              # Authorization and security test suite
 └── src/
     ├── main/
     │   └── java/
@@ -151,15 +152,15 @@ The framework demonstrates enterprise-grade state propagation across several pat
 ### 1. Order Lifecycle Chain (`OrderFulfillmentChainTest`)
 Executes an end-to-end business transaction where each step depends on the previous step's output:
 ```text
-[GET Catalog Items] 
+[GET Catalog Items]
        ↓ (Extract Target Item)
-[POST /api/orders] 
+[POST /api/orders]
        ↓ (Extract Generated orderId: 101)
-[POST /api/orders/101/invoice] 
+[POST /api/orders/101/invoice]
        ↓ (Multipart File Attachment)
-[PATCH /api/orders/101] 
+[PATCH /api/orders/101]
        ↓ (Transition Status to SHIPPED)
-[DELETE /api/orders/101] 
+[DELETE /api/orders/101]
        ↓ (Teardown & Verification)
 ```
 
