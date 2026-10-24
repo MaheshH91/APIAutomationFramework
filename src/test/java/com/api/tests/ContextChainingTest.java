@@ -5,7 +5,6 @@ import org.testng.ITestContext;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import com.api.constants.Endpoints;
 import com.api.listeners.TestListener;
 import com.api.models.request.SignUpRequest;
 import com.api.services.AuthService;
