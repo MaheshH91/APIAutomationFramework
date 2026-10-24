@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
   schedule:
     - cron: '0 18 * * *'  # Runs daily at 11:30 PM IST (18:00 UTC)
-  workflow_dispatch:      # Allows manual trigger with suite parameters
+  workflow_dispatch:
     inputs:
       test_suite:
         description: 'Select TestNG suite profile'
@@ -55,18 +55,15 @@ jobs:
         run: |
           npm install -g @mockoon/cli
 
-          # Identify mock file location
           MOCK_FILE="src/test/resources/mockoon-environment.json"
           if [ ! -f "$MOCK_FILE" ]; then
             MOCK_FILE="mockoon-environment.json"
           fi
           echo "Using mock file: $MOCK_FILE"
 
-          # Start mockoon in true background daemon mode (does not block the shell)
           mockoon-cli start --data "$MOCK_FILE" --port 8089 --daemonOff false || \
           nohup mockoon-cli start --data "$MOCK_FILE" --port 8089 > mockoon.log 2>&1 &
 
-          # Health check polling loop (max 15 seconds)
           echo "Waiting for Mockoon to respond on port 8089..."
           READY=0
           for i in {1..15}; do
@@ -89,7 +86,8 @@ jobs:
         run: |
           SUITE="${{ github.event.inputs.test_suite || 'regression' }}"
           ENV="${{ github.event.inputs.environment || 'qa' }}"
-          mvn clean test -P${SUITE} -Denv=${ENV}
+          echo "Executing Suite Profile: $SUITE | Env: $ENV"
+          mvn clean test -P${SUITE} -Denv=${ENV} -DsuiteXmlFile="testng-suites/testng-${SUITE}.xml"
 
       - name: Upload Execution Logs
         if: always()
@@ -97,29 +95,60 @@ jobs:
         with:
           name: Execution-Logs
           path: logs/
-          if-no-files-found: ignore
+          if-no-files-found: warn
 
       - name: Upload Extent Report
         if: always()
         uses: actions/upload-artifact@v4.6.1
         with:
           name: Extent-Report
-          path: target/extent-reports/
-          if-no-files-found: ignore
+          path: |
+            **/target/extent-reports/**
+            **/extent-reports/**
+            **/extentReport.html
+          if-no-files-found: warn
 
       - name: Upload TestNG Emailable Report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.1
         with:
           name: TestNG-Reports
-          path: target/surefire-reports/emailable-report.html
-          if-no-files-found: ignore
+          path: |
+            **/target/surefire-reports/emailable-report.html
+            **/target/surefire-reports/testng-results.xml
+          if-no-files-found: warn
 
       - name: Publish TestNG Results to Checks Tab
         if: always()
         uses: dorny/test-reporter@v3
         with:
           name: TestNG Execution Results
-          path: 'target/surefire-reports/junitreports/TEST-*.xml'
+          path: 'target/surefire-reports/**/TEST-*.xml'
           reporter: java-junit
           fail-on-error: false
+
+      - name: Send Execution Reports via Email
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.office365.com     # Change to smtp.gmail.com or mail.rediffmail.com if using another provider
+          server_port: 587
+          secure: false
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "[GitHub Actions] API Test Suite Execution - ${{ job.status }} (Build #${{ github.run_number }})"
+          to: ${{ secrets.MAIL_RECIPIENT }}
+          from: "API Automation Suite <${{ secrets.MAIL_USERNAME }}>"
+          html_body: |
+            <h2>API Test Automation Execution Report</h2>
+            <p><b>Status:</b> ${{ job.status }}</p>
+            <p><b>Repository:</b> ${{ github.repository }}</p>
+            <p><b>Branch:</b> ${{ github.ref_name }}</p>
+            <p><b>Triggered By:</b> ${{ github.actor }}</p>
+            <p><b>Run URL:</b> <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">View GitHub Action Run</a></p>
+            <hr/>
+            <p><i>Attached: Extent Report dashboard, TestNG emailable report, and execution logs.</i></p>
+          attachments: |
+            target/extent-reports/extentReport.html,
+            target/surefire-reports/emailable-report.html,
+            logs/test.log
