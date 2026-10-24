@@ -51,19 +51,36 @@ jobs:
       - name: Install and Start Mockoon CLI
         run: |
           npm install -g @mockoon/cli
-          # Start Mockoon pointing to your mock environment file in background
-          mockoon-cli start --data "src/test/resources/mockoon-environment.json" --port 8089 || \
-          mockoon-cli start --data "mockoon-environment.json" --port 8089
-          
-          # Health check polling loop
-          for i in {1..20}; do
-            if curl -s -o /dev/null http://localhost:8089/api/orders; then
-              echo "Mockoon mock server is active and ready on port 8089."
+
+          # Identify mock file location
+          MOCK_FILE="src/test/resources/mockoon-environment.json"
+          if [ ! -f "$MOCK_FILE" ]; then
+            MOCK_FILE="mockoon-environment.json"
+          fi
+          echo "Using mock file: $MOCK_FILE"
+
+          # Start mockoon in true background daemon mode (does not block the shell)
+          mockoon-cli start --data "$MOCK_FILE" --port 8089 --daemonOff false || \
+          nohup mockoon-cli start --data "$MOCK_FILE" --port 8089 > mockoon.log 2>&1 &
+
+          # Health check polling loop (max 15 seconds)
+          echo "Waiting for Mockoon to respond on port 8089..."
+          READY=0
+          for i in {1..15}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8089/api/orders || true)
+            if [ "$STATUS" != "000" ] && [ -n "$STATUS" ]; then
+              echo "Mockoon is up and healthy (HTTP $STATUS) on attempt $i."
+              READY=1
               break
             fi
-            echo "Waiting for Mockoon to spin up ($i/20)..."
             sleep 1
           done
+
+          if [ $READY -eq 0 ]; then
+            echo "Mockoon failed to start in time. Mockoon log output:"
+            cat mockoon.log 2>/dev/null || true
+            exit 1
+          fi
 
       - name: Execute Maven Tests
         run: |
