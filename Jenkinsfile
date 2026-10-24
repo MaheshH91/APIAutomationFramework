@@ -15,7 +15,7 @@ pipeline {
     }
 
     tools {
-        jdk 'JAVA_HOME'
+        jdk 'JDK_25'
         maven 'MAVEN_HOME'
     }
 
