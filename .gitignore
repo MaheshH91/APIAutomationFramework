@@ -1,15 +1,10 @@
-==============================================================================
+# ==============================================================================
+# Enterprise REST Assured API Automation Framework - .gitignore
+# ==============================================================================
 
-Enterprise REST Assured API Automation Framework - .gitignore
-
-==============================================================================
-
---------------------------------------------------
-
-Maven Build & Target Directories
-
---------------------------------------------------
-
+# --------------------------------------------------
+# Maven Build & Target Directories
+# --------------------------------------------------
 target/
 *.war
 *.ear
@@ -24,97 +19,74 @@ buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
 
---------------------------------------------------
-
-Execution Logs & Test Outputs
-
---------------------------------------------------
-
+# --------------------------------------------------
+# Execution Logs & Test Outputs
+# --------------------------------------------------
 logs/
 *.log
 mockoon.log
 test-output/
 surefire-reports/
 
---------------------------------------------------
-
-HTML & Visual Test Reports (Local Artifacts)
-
---------------------------------------------------
-
+# --------------------------------------------------
+# HTML & Visual Test Reports (Local Artifacts)
+# --------------------------------------------------
 extent-reports/
+*.html
 
-
---------------------------------------------------
-
-Local Environment Overrides & Secret Properties
-
---------------------------------------------------
-
+# --------------------------------------------------
+# Local Environment Overrides & Secret Properties
+# --------------------------------------------------
 config.local.properties
 *.secret.properties
 .env
 .env.local
-rediffmail.crt
-rediffmail_clean.crt
+*.crt
+*.pem
+*.jks
 
---------------------------------------------------
-
-IDE & Code Editor Files
-
---------------------------------------------------
-
-IntelliJ IDEA
-
+# --------------------------------------------------
+# IDE & Code Editor Metadata
+# --------------------------------------------------
+# IntelliJ IDEA
 .idea/
 *.iml
 *.iws
 *.ipr
 out/
 
-Eclipse
-
+# Eclipse
 .project
 .classpath
 .settings/
 bin/
 
-Visual Studio Code
-
+# Visual Studio Code
 .vscode/
 *.code-workspace
 
---------------------------------------------------
-
-Operating System & Temporary Files
-
---------------------------------------------------
-
-Windows
-
+# --------------------------------------------------
+# Operating System & Temporary Files
+# --------------------------------------------------
+# Windows
 Thumbs.db
 ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 
-macOS
-
+# macOS
 .DS_Store
 .AppleDouble
 .LSOverride
 
-Linux / Vim
-
+# Linux / Vim
 *~
 *.swp
 *.swo
 
---------------------------------------------------
-
-Crash Dumps & Heap Files
-
---------------------------------------------------
-
-.hprof
-hs_err_pid
+# --------------------------------------------------
+# Crash Dumps & Heap Files
+# --------------------------------------------------
+*.hprof
+hs_err_pid*
 replay_pid*
