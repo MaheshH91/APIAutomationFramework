@@ -127,28 +127,31 @@ jobs:
           reporter: java-junit
           fail-on-error: false
 
-      - name: Send Execution Reports via Email
+      - name: Send Test Execution Email Report via Rediffmail
         if: always()
         uses: dawidd6/action-send-mail@v3
         with:
-          server_address: smtp.office365.com     # Change to smtp.gmail.com or mail.rediffmail.com if using another provider
+          # Use 'smtp.rediffmailPro.com' if using enterprise/Pro domain
+          server_address: smtp.rediffmail.com
           server_port: 587
           secure: false
+          ignore_cert: true
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "[GitHub Actions] API Test Suite Execution - ${{ job.status }} (Build #${{ github.run_number }})"
-          to: ${{ secrets.MAIL_RECIPIENT }}
+          subject: "GitHub Actions: API Test Report - ${{ job.status }}"
+          to: ${{ secrets.MAIL_TO }}
           from: "API Automation Suite <${{ secrets.MAIL_USERNAME }}>"
-          html_body: |
-            <h2>API Test Automation Execution Report</h2>
-            <p><b>Status:</b> ${{ job.status }}</p>
-            <p><b>Repository:</b> ${{ github.repository }}</p>
-            <p><b>Branch:</b> ${{ github.ref_name }}</p>
-            <p><b>Triggered By:</b> ${{ github.actor }}</p>
-            <p><b>Run URL:</b> <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">View GitHub Action Run</a></p>
-            <hr/>
-            <p><i>Attached: Extent Report dashboard, TestNG emailable report, and execution logs.</i></p>
+          body: |
+            Hi Team,
+
+            The automated API test execution on GitHub Actions has completed.
+
+            - Status: ${{ job.status }}
+            - Repository: ${{ github.repository }}
+            - Workflow Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            Extent Reports, TestNG Reports, and execution logs are attached.
           attachments: |
             target/extent-reports/extentReport.html,
             target/surefire-reports/emailable-report.html,
-            logs/test.log
+            logs/execution.log
