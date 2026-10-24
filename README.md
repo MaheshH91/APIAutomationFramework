@@ -242,7 +242,7 @@ This framework covers multiple modern and legacy authentication scenarios throug
 
 1. ExtentReports dashboard at `target/extent-reports/extentReport.html`
 2. TestNG suite reports at `target/surefire-reports/emailable-report.html` and `target/surefire-reports/testng-results.xml`
-3. Execution logs at `logs/execution.log`
+3. Execution logs at `logs/test.log`
 
 ### Centralized Logging Configuration
 
@@ -516,7 +516,7 @@ jobs:
           attachments: |
             target/extent-reports/extentReport.html,
             target/surefire-reports/emailable-report.html,
-            logs/execution.log
+            logs/test.log
 ```
 
 ---
