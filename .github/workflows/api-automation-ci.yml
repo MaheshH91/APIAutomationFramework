@@ -129,12 +129,13 @@ jobs:
 
       - name: Send Test Execution Email Report via Rediffmail
         if: always()
+        env:
+          NODE_OPTIONS: "--openssl-legacy-provider --tls-min-v1.0"
         uses: dawidd6/action-send-mail@v3
         with:
-          # Use 'smtp.rediffmailPro.com' if using enterprise/Pro domain
           server_address: smtp.rediffmail.com
-          server_port: 587
-          secure: false
+          server_port: 465
+          secure: true
           ignore_cert: true
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
