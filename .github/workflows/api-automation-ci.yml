@@ -127,7 +127,7 @@ jobs:
           reporter: java-junit
           fail-on-error: false
 
-      - name: Send Test Execution Email Report
+      - name: Send Test Execution Email Report via Gmail
         if: always()
         uses: dawidd6/action-send-mail@v3
         with:
@@ -148,7 +148,7 @@ jobs:
             - Repository: ${{ github.repository }}
             - Workflow Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-            Extent Reports, TestNG Reports, and execution logs are attached.
+            Extent Reports, TestNG Reports, and execution logs are attached below.
           attachments: |
             target/extent-reports/extentReport.html,
             target/surefire-reports/emailable-report.html,
