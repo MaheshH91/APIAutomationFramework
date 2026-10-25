@@ -1,14 +1,12 @@
 # Enterprise REST Assured API Automation Framework
 
-<div align="center">
-  <img src="https://img.shields.io/badge/Java-25-orange.svg" alt="Java 25" />
-  <img src="https://img.shields.io/badge/REST%20Assured-5.5.0-green.svg" alt="REST Assured 5.5.0" />
-  <img src="https://img.shields.io/badge/TestNG-7.10.2-red.svg" alt="TestNG 7.10.2" />
-  <img src="https://img.shields.io/badge/ExtentReports-5.1.2-blue.svg" alt="ExtentReports 5.1.2" />
-  <img src="https://img.shields.io/badge/Datafaker-2.7.0-purple.svg" alt="Datafaker 2.7.0" />
-  <img src="https://img.shields.io/badge/Jenkins-Pipeline%20Ready-brightgreen.svg" alt="Jenkins" />
-  <img src="https://img.shields.io/badge/GitHub%20Actions-CI%2FCD%20Automated-blue.svg" alt="GitHub Actions" />
-</div>
+![Java 25](https://img.shields.io/badge/Java-25-orange.svg)
+![REST Assured 5.5.0](https://img.shields.io/badge/REST%20Assured-5.5.0-green.svg)
+![TestNG 7.10.2](https://img.shields.io/badge/TestNG-7.10.2-red.svg)
+![ExtentReports 5.1.2](https://img.shields.io/badge/ExtentReports-5.1.2-blue.svg)
+![Datafaker 2.7.0](https://img.shields.io/badge/Datafaker-2.7.0-purple.svg)
+![Jenkins](https://img.shields.io/badge/Jenkins-Pipeline%20Ready-brightgreen.svg)
+![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD%20Automated-blue.svg)
 
 A modular, thread-safe, enterprise-ready REST API test automation framework built with Java 25, REST Assured, TestNG, and Maven. It is designed around layered architecture, reusable service classes, strong configuration management, and CI/CD-friendly execution patterns for realistic API validation and security testing.
 
